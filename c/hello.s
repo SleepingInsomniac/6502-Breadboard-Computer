@@ -12,7 +12,13 @@
 	.macpack	longbranch
 	.forceimport	__STARTUP__
 	.import		_init_lcd
+	.import		_lcd_print
 	.export		_main
+
+.segment	"RODATA"
+
+L0004:
+	.byte	$48,$65,$6C,$6C,$6F,$2C,$20,$57,$6F,$72,$6C,$64,$21,$00
 
 ; ---------------------------------------------------------------
 ; void __near__ main (void)
@@ -22,14 +28,12 @@
 
 .proc	_main: near
 
-.segment	"RODATA"
-
-L0004:
-	.byte	$48,$65,$6C,$6C,$6F,$2C,$20,$77,$6F,$72,$6C,$64,$21
-
 .segment	"CODE"
 
-	jmp     _init_lcd
+	jsr     _init_lcd
+	lda     #<(L0004)
+	ldx     #>(L0004)
+	jmp     _lcd_print
 
 .endproc
 

@@ -1,8 +1,8 @@
 extern void __fastcall__ init_lcd();
-extern void __fastcall__ lcd_show(char *str);
+extern void __fastcall__ lcd_print(char *str);
 
 void main(void)
 {
   init_lcd();
-  lcd_show("Hello, World!");
+  lcd_print("Hello, World!");
 }
