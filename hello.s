@@ -20,6 +20,7 @@ LCD_RS = %00100000 ; register select
 
 ; RAM              ; enabled for addr LL-- ---- ---- ----
 RAM_START = $0100  ; stack is ram from 00 - FF
+SLEEP_COUNTER = $0100 ; 2 bytes
 
   .org $8000       ; rom is enabled for address line 15
 
@@ -65,29 +66,20 @@ loop:             ; blink and loop forever
   lda #%01010101
   sta PORTB
 
-  lda #$08        ; sleep
+  lda #$40
+  sta SLEEP_COUNTER
+  lda #$FF
+  sta SLEEP_COUNTER + 1
   jsr sleep
 
   lda #%10101010
   sta PORTB
 
-  lda #$08        ; sleep
+  lda #$40
+  sta SLEEP_COUNTER
+  lda #$FF
+  sta SLEEP_COUNTER + 1
   jsr sleep
-
-;  lda #%10000000 ; sweep this pattern across the leds
-;  ldx #8         ; rotate x times
-;sweep:
-;  sta PORTB      ; put A into LEDs
-;  rol            ; rotate a register
-;  pha            ; store a on the stack
-
- ; lda #$01       ; sleep
-;  jsr sleep
-
-;  pla            ; pull stack onto a, this should be led pattern
-;  dex            ; decrement x
-;  cpx #0         ; set zero flag if x is 0
-;  bne sweep      ; if x is not 0 jmp to sweep
 
   jmp loop ; loop forever
 
@@ -138,29 +130,22 @@ lcdbusy:          ; page 9 of datasheet
   pla             ; get prev a back off stack
   rts
 
+  ; loop, decrementing value at SLEEP_COUNTER (2 bytes) until 0, then return
 sleep:
-  pha
-  txa
-  pha
-  tya
-  pha
-  tax             ; transfer a to x
+  pha ; save a on stack
 sleeping:
-  dex             ; decrement x
-  ldy #$FF
-delay:
-  dey
-  tya
-  bne delay
-
-  txa             ; get x back in a
-  bne sleeping    ; zero flag not set yet
-  pla
-  tay
-  pla
-  tax
-  pla
-  rts             ; done sleeping
+  lda SLEEP_COUNTER      ; load sleep counter to A
+  and SLEEP_COUNTER + 1   ; test if both values are zero
+  beq done_sleeping      ; exit if both bytes are zero
+  dec SLEEP_COUNTER + 1   ; decrement sleep counter
+  bne sleeping           ; zero flag not set, sleep counter is not zero
+  lda #$FF
+  sta SLEEP_COUNTER + 1   ; reset low order byte of sleep counter
+  dec SLEEP_COUNTER      ; decrement high order byte
+  jmp sleeping
+done_sleeping:
+  pla ; pull previous a from stack
+  rts ; done sleeping
 
 message: .asciiz "Merry Christmas!"
 
