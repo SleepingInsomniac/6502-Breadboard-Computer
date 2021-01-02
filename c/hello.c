@@ -4,5 +4,5 @@ extern void __fastcall__ lcd_print(char *str);
 void main(void)
 {
   init_lcd();
-  lcd_print("Hello, World!");
+  lcd_print("Merry Christmas!");
 }
