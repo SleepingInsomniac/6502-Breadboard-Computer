@@ -2,7 +2,7 @@
 .import  __DDRA__, __DDRB__, __PORTA__, __PORTB__ ; Defined in breadboard.cfg
 
 .zeropage
-_lcd_print_data:    .res 2, $00      ;  Reserve a local zero page pointer
+_lcd_print_data:    .res 2 ;  Reserve a local zero page pointer
 
 .segment "CODE"
 
@@ -11,13 +11,13 @@ LCD_EN = %10000000 ; enable
 LCD_RW = %01000000 ; read/write
 LCD_RS = %00100000 ; register select
 
-; Initialize 65c22 interface adapter to interface with lcd
+_init_lcd:
+  ; Initialize 65c22 interface adapter to interface with lcd
   lda #%11111111  ; Set Data pins to output for port b
   sta __DDRB__
   lda #%11100000  ; Set LCD MPU pins to output on 65c22
   sta __DDRA__
 
-_init_lcd:
   ; lcd function set 001 DL N F * *
   lda #%00111000  ; LCD: 8bit mode, 1 line display, 5x8 char mode - p.40 of datasheet
   jsr _send_lcd_instr
@@ -35,6 +35,7 @@ _init_lcd:
 
   lda #%00000010  ; return home
   jsr _send_lcd_instr
+  rts
 
 ; LCD instructions page 24
 _send_lcd_instr:
@@ -61,7 +62,6 @@ lcdbusy:          ; page 9 of datasheet
   lda __PORTB__   ; read port b db7 is 1 when busy
   and #%10000000  ; and reg a with high order bit
   bne lcdbusy     ; z flag set if portb db7 was 0, loop if not zero
-
   lda #LCD_RW     ; clear mpu enable bit
   sta __PORTA__
   lda #%11111111  ; set port b back to output
@@ -69,24 +69,28 @@ lcdbusy:          ; page 9 of datasheet
   pla             ; get prev a back off stack
   rts
 
+; Pointer to data passed in on a, x
 _lcd_print:
-  ldx #0          ; load x with index 0
+  sta _lcd_print_data        ; store low order byte pointer address
+  stx _lcd_print_data + 1    ; high order byte
+  ldy #0                     ; reset counter
 printing:
-  sta _lcd_print_data      ; reg a has pointer to data
-  lda _lcd_print_data, x   ; load a with character at offset x
-  beq message_ended        ; return if null byte
-  jsr print_char
-  inx                      ; increment x to next character
+  lda (_lcd_print_data), y   ; get 8bit char data at 16bit address stored at _lcd_print_data with offset
+  stx __PORTB__
+  beq message_ended          ; return if null byte
+  jsr _print_char            ; wait for lcd, store to port b, enable lcd read, etc.
+  iny                        ; increment counter to next character
   jmp printing
 message_ended:
   rts
 
-print_char:
+; Print char on reg a to lcd
+_print_char:
   jsr _lcd_wait
   sta __PORTB__
   lda #LCD_RS     ; clear LCD MPU bits, except LCD data register select
   sta __PORTA__
-  lda #(LCD_RS | LCD_EN) ; make lcd update
+  lda #(LCD_RS | LCD_EN) ; select lcd data register, r/w low (read), enable lcd
   sta __PORTA__
   lda #LCD_RS     ; clear LCD MPU bits, except LCD data register select
   sta __PORTA__
