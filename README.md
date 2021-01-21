@@ -1,23 +1,17 @@
 # 6502 Breadboard computer
 
+This repo is for the code related to my homebrew 6502 computer
+
 ## Minipro
 
-macOS:
+minipro interfaces with the TL866ii programmer used to write to the EEPROM
 
-install: `brew install minipro`
+- install: `brew install minipro`
+- upload: `minipro -p AT28C256 -w a.out`
 
-program eeprom: `minipro -p AT28C256 -w a.out`
+## Hardware
 
-## vasm
-
-`http://www.compilers.de/vasm.html`
-
-build:
-
-`make CPU=6502 SYNTAX=oldstyle`
-
-## blink
-
-build:
-
-`vasm6502_oldstyle -Fbin -dotdir blink.s`
+- wdc65c02s MPU
+- AT28C256 EEPROM
+- HM26256 SRAM
+- wdc65c22s Interface adapter
