@@ -1,10 +1,12 @@
 # vasm
 
-- `http://www.compilers.de/vasm.html`
+- Homepage: `http://www.compilers.de/vasm.html`
+- Source: `http://sun.hasenbraten.de/vasm/index.php?view=relsrc`
+- Documentation: `http://sun.hasenbraten.de/vasm/release/vasm.html`
 
-build:
+## build:
 
-`make CPU=6502 SYNTAX=oldstyle`
+- `make CPU=6502 SYNTAX=oldstyle`
 
 ## blink
 
