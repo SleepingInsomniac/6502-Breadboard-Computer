@@ -1,26 +1,12 @@
-; $0000 - $00FF - STACK
-; $0100 - $3FFF - RAM
-; $6000 - $6FFF - 65c22
-; $8000 - $8FFF - ROM
-
-; 65c02 CPU
-ROMADDR = $fffc ; 65c02 ROM initial intstruction location address
-
-; 65C22 interface adapter
+; $0200 - $3FFF - [RAM] hm62256b
+; $6000 - $600F - [interface adapter] w65c22s
+;   $6000 - $6001 - [LCD] HD44780
 PORTA = $6001 ; LCD MPU interface top 3 bits
 PORTB = $6000 ; LEDs / LCD located on port B
-
-DDRA = $6003 ; Data direction for port b
-DDRB = $6002 ; Data direction for port a
-
-; LCD display MPU interface
-LCD_EN = %10000000 ; enable
-LCD_RW = %01000000 ; read/write
-LCD_RS = %00100000 ; register select
-
-; RAM              ; enabled for addr LL-- ---- ---- ----
-RAM_START = $0100  ; stack is ram from 00 - FF
-SLEEP_COUNTER = $0100 ; 2 bytes
+DDRA  = $6003 ; Data direction for port b
+DDRB  = $6002 ; Data direction for port a
+; $6010 - $6FFF x Unused
+; $8000 - $8FFF - [ROM] 28c256
 
   .org $8000       ; rom is enabled for address line 15
 
@@ -54,6 +40,6 @@ main:
 
 message: .asciiz "Merry Christmas!"
 
-  .org ROMADDR    ; CPU reads this address for where to start execution
-  .word reset     ; ROM address begins
+  .org $FFFC      ; CPU reads this address for where to start execution
+  .word reset     ; reset vector - ROM address begins
   .word $0000     ; EEPROM padding
