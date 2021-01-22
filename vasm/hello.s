@@ -35,117 +35,22 @@ reset:
   lda #%11100000  ; Set LCD MPU pins to output on 65c22
   sta DDRA
 
-init_lcd:
-  ; lcd function set 001 DL N F * *
-  lda #%00111000  ; LCD: 8bit mode, 1 line display, 5x8 char mode - p.40 of datasheet
-  jsr send_lcd_instr
+  jsr init_lcd
 
-  ; display control 00001 D C B
-  lda #%00001100  ; display on, cursor on, blink off
-  jsr send_lcd_instr
+print_string:
+  ldx #0 ; initialize x as counter
+printing:
+  lda message, x      ; load the char into a
+  beq done_printing   ; if the 0 flag is set due to null byte, string has ended
+  jsr print_char      ; print the character in the a register
+  inx                 ; step to next byte
+  jmp printing        ; loop
+done_printing:
 
-  ; entry mode set 0000 01 i/d s
-  lda #%00000110  ; inc & shift cursor, do not shift display
-  jsr send_lcd_instr
+main:
+  jmp main ; loop forever
 
-  lda #%00000001  ; clear display
-  jsr send_lcd_instr
-
-  lda #%00000010  ; return home
-  jsr send_lcd_instr
-
-  ldx #0
-print_message:
-  lda message, x
-  beq loop
-  jsr print_char
-  inx
-  jmp print_message
-
-loop:             ; blink and loop forever
-  lda #%01010101
-  sta PORTB
-
-  lda #$40
-  sta SLEEP_COUNTER
-  lda #$FF
-  sta SLEEP_COUNTER + 1
-  jsr sleep
-
-  lda #%10101010
-  sta PORTB
-
-  lda #$40
-  sta SLEEP_COUNTER
-  lda #$FF
-  sta SLEEP_COUNTER + 1
-  jsr sleep
-
-  jmp loop ; loop forever
-
-print_char:
-  jsr lcd_wait
-  sta PORTB
-
-  lda #LCD_RS     ; clear LCD MPU bits, except LCD data register select
-  sta PORTA
-
-  lda #(LCD_RS | LCD_EN) ; make lcd update
-  sta PORTA
-
-  lda #LCD_RS     ; clear LCD MPU bits, except LCD data register select
-  sta PORTA
-  rts
-
-  ; LCD instructions page 24
-send_lcd_instr:
-  jsr lcd_wait
-  sta PORTB
-  lda #0          ; clear LCD MPU bits
-  sta PORTA
-  lda #LCD_EN     ; make lcd update
-  sta PORTA
-  lda #0          ; clear LCD MPU bits
-  sta PORTA
-  rts
-
-  ; LCD busy flag check page 32
-lcd_wait:
-  pha             ; store a on stack, since we will modify it
-  lda #%00000000  ; set port b to input
-  sta DDRB
-lcdbusy:          ; page 9 of datasheet
-  lda #LCD_RW     ; set r/w for lcd
-  sta PORTA
-  lda #(LCD_RW | LCD_EN) ; rs low, rw high, enable high
-  sta PORTA       ; store to lcd mpu
-  lda PORTB       ; read port b db7 is 1 when busy
-  and #%10000000  ; and reg a with high order bit
-  bne lcdbusy     ; z flag set if portb db7 was 0, loop if not zero
-
-  lda #LCD_RW     ; clear mpu enable bit
-  sta PORTA
-  lda #%11111111  ; set port b back to output
-  sta DDRB
-  pla             ; get prev a back off stack
-  rts
-
-  ; loop, decrementing value at SLEEP_COUNTER (2 bytes) until 0, then return
-sleep:
-  pha ; save a on stack
-sleeping:
-  lda SLEEP_COUNTER      ; load sleep counter to A
-  and SLEEP_COUNTER + 1   ; test if both values are zero
-  beq done_sleeping      ; exit if both bytes are zero
-  dec SLEEP_COUNTER + 1   ; decrement sleep counter
-  bne sleeping           ; zero flag not set, sleep counter is not zero
-  lda #$FF
-  sta SLEEP_COUNTER + 1   ; reset low order byte of sleep counter
-  dec SLEEP_COUNTER      ; decrement high order byte
-  jmp sleeping
-done_sleeping:
-  pla ; pull previous a from stack
-  rts ; done sleeping
+  .include "lcd.s" ; include lcd functions
 
 message: .asciiz "Merry Christmas!"
 
