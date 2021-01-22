@@ -1,6 +1,12 @@
 init_lcd:
   pha ; save a on the stack
 
+  ; Initialize 65c22 interface adapter to interface with lcd
+  lda #%11111111  ; Set Data pins to output for port b
+  sta DDRB
+  lda #%11100000  ; Set LCD MPU pins to output on 65c22
+  sta DDRA
+
   ; lcd function set 001 DL N F * *
   lda #%00111000  ; LCD: 8bit mode, 1 line display, 5x8 char mode - p.40 of datasheet
   jsr send_lcd_instruction

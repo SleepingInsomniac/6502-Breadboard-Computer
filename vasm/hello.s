@@ -15,12 +15,6 @@ reset:
   ldx #$FF        ; Value to initialize the stack pointer at
   txs             ; transfer the x register value to the stack pointer
 
-  ; Initialize 65c22 interface adapter to interface with lcd
-  lda #%11111111  ; Set Data pins to output for port b
-  sta DDRB
-  lda #%11100000  ; Set LCD MPU pins to output on 65c22
-  sta DDRA
-
   jsr init_lcd
 
 print_string:
