@@ -1,4 +1,4 @@
-; Done the long way because there is no ram for a stack yet
+; Does not require a stack, (no subroutines are possible)
 
 ; 65c02 CPU
 ROMADDR = $fffc ; 65c02 ROM initial intstruction location address

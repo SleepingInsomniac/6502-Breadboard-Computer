@@ -1,3 +1,5 @@
+; Counts in binary output on port b
+
 ; 65c02 CPU
 ROMADDR = $fffc ; 65c02 ROM initial intstruction location address
 
@@ -12,7 +14,7 @@ DDRB = $6002 ; Data direction for port a
 
 reset:
   ; Initialize interface adapter, all datapins will be set to output
-  lda #%11111111 
+  lda #%11111111
   sta DDRB
 
   ldx #%00000000  ; Pattern of LEDs to blink
