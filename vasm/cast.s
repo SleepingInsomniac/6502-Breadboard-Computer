@@ -64,7 +64,7 @@ ignore_result:
   lda mod10          ; load the digit into a
   clc                ; clear carry bit
   adc #"0"           ; Add a to 0 to get the ascii representation of the digit
-  jsr unshift_char
+  jsr shift_char
 
   ; check if value is 0, otherwise keep finding digits
   lda value          ; load a with our value
@@ -85,7 +85,7 @@ main:
   jmp main ; loop forever
 
 ; Add the character in the A register to the message string
-unshift_char:
+shift_char:
   pha              ; push char onto stack
   ldy #0           ; initialize index into message
 char_loop:
