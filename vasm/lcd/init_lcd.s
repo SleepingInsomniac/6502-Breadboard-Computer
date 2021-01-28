@@ -12,7 +12,7 @@ init_lcd:
   jsr send_lcd_instruction
 
   ; display control 00001 D C B
-  lda #%00001100  ; display on, cursor on, blink off
+  lda #%00001100  ; display on, cursor off, blink off
   jsr send_lcd_instruction
 
   ; entry mode set 0000 01 i/d s
