@@ -3,3 +3,4 @@
 *.o
 
 c/hello.s
+examples.txt
