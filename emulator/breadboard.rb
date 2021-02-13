@@ -1,7 +1,7 @@
 class Breadboard
   attr_reader :cpu
 
-  def initialize
+  def initialize(rom_file_path)
     @address_bus = Bus.new(16)
     @data_bus    = Bus.new(8)
     @clock       = Bus.new(1)
@@ -18,7 +18,8 @@ class Breadboard
       address_bus: @address_bus,
       data_bus: @data_bus,
       rwb: @rwb,
-      enable: 0x8000
+      enable: 0x8000,
+      file_path: rom_file_path
     )
 
     @cpu         = CPU.new(

@@ -168,7 +168,8 @@ class CPU65c02
   end
 
   def mnemonic(opcode)
-    y, x = opcode.to_s(16).chars.map { |c| c.to_i(16) }
+    y = opcode >> 4
+    x = opcode & 0xF
     OP_CODES[y][x]
   end
 
