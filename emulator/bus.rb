@@ -9,26 +9,28 @@ class Bus
   end
 
   def read
-    @data.tap do |val|
-      @read_callbacks.each { |func| func.call(val) }
-    end
+    @read_callbacks.each { |func| func.call(@data) }
+    @data
   end
 
   def write(value)
-    @data = (value & @mask).tap do |val|
-      @write_callbacks.each { |func| func.call(val) }
-    end
+    new_val = value & @mask
+    old_val = @data
+    @data = new_val
+    @write_callbacks.each { |func| func.call(new_val, old_val) }
   end
 
   def on_read(mask = @mask, &block)
-    @read_callbacks.push ->(val) do
-      block.call(val) if mask & val == mask
-    end
+    @read_callbacks.push ->(value) { block.call(value) if value & mask != 0 }
   end
 
   def on_write(mask = @mask, &block)
-    @write_callbacks.push ->(val) do
-      block.call(val) if mask & val == mask
+    @write_callbacks.push ->(value, old_value) do
+      block.call(value) if diff_bit?(old_value, value, mask)
     end
+  end
+
+  def diff_bit?(value, change, mask)
+    value ^ change & mask != 0
   end
 end

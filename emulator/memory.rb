@@ -26,10 +26,12 @@ class Memory
     end
 
     @rwb.on_write { update }
+    @data_bus.on_write { update }
     @address_bus.on_write(@enable) { update }
   end
 
   def update
+    return unless @address_bus.read & @enable != 0
     if @rwb.read > 0 # value of 1 signifies read
       read(@address_bus.read)
     else # Value of 0 signifies write
