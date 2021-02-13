@@ -144,11 +144,11 @@ class CPU65c02
   # - @param data_bus    : Bus - 8
   # - @param rwb         : Bus - 1
   # - @param clock       : Bus - 1
-  def initialize(address_bus:, data_bus:, rwb:, clock:)
+  def initialize(address_bus:, data_bus:, rwb:, breadboard:)
     @address_bus = address_bus
     @data_bus = data_bus
     @rwb = rwb
-    @clock = clock
+    @breadboard = breadboard
 
     # Init registers
     @a  = 0b0000_0000
@@ -157,21 +157,45 @@ class CPU65c02
     @p  = 0b0011_0100 # N,V,Z,C software initialized
     @pc = 0b0000_0000_0000_0000 # 16 bits
     @s  = 0b0000_0000
-
-    # Connect clock on rising edge
-    @clock.on_write { |value| tick if value == 1 }
   end
 
-  def tick(value)
-    pc += 1 # Increment program counter
+  def address=(value)
+    @pc = value & 0xFFFF
+    @address_bus.write(@pc)
+  end
+
+  def tick
+    # Get the instruction from the current address on the databus
+    _mnemonic, _mode = mnemonic(read)
     # TODO: Do cpu stuff
   end
 
-  def mnemonic(opcode)
-    OP_CODES[opcode]
+  def read
+    @rwb.write(1) # Set read mode
+    data = @data_bus.read # Read data bus
+    @pc += 1 # Increment program counter
+    @breadboard.update do
+      @address_bus.write(pc) # output new address
+    end
+    data
   end
 
-  def addressing_mode(mnemonic)
-    ADDRESSING_MODES[mnemonic]
+  # Decode the instruction and addressing mode of the given byte
+  def mnemonic(opcode)
+    _mnemonic, _mode = OP_CODES[opcode].split(' ')
   end
+
+  # Get the operand of the current instruction based on addressing mode
+  def operand(mode)
+    self.send("addr_" + ADDRESSING_MODES[mode].downcase.gsub(/\s/, '_'))
+  end
+
+  # ==== Addressing Modes ====
+
+  def addr_absolute
+    adl = read # Read low order byte
+    adh = read # Read high order byte
+    (adh << 8) | adl # Combine to get 16 bit address
+  end
+
 end

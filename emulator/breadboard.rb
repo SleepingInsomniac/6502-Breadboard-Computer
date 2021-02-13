@@ -1,30 +1,14 @@
 class Breadboard
-  attr_reader :cpu
+  def initialize
+    @callbacks = []
+  end
 
-  def initialize(rom_file_path)
-    @address_bus = Bus.new(16)
-    @data_bus    = Bus.new(8)
-    @clock       = Bus.new(1)
-    @rwb         = Bus.new(1)
+  def on_update(&block)
+    @callbacks << block
+  end
 
-    @ram         = Memory.new(
-      address_bus: @address_bus,
-      data_bus: @data_bus,
-      rwb: @rwb,
-      enable: 0x4000
-    )
-
-    @rom         = Memory.new(
-      address_bus: @address_bus,
-      data_bus: @data_bus,
-      rwb: @rwb,
-      enable: 0x8000,
-      file_path: rom_file_path
-    )
-
-    @cpu         = CPU.new(
-      address_bus: @address_bus,
-      data_bus: @data_bus
-    )
+  def update
+    yield if block_given?
+    @callbacks.each(&:call)
   end
 end

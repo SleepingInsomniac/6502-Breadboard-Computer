@@ -1,38 +1,48 @@
-require_relative "../memory.rb"
-require_relative "../bus.rb"
+require_relative "../memory"
+require_relative "../bus"
+require_relative "../breadboard"
+
+require 'stringio'
 
 RSpec.describe Memory do
-  let!(:address_bus) { Bus.new(16) }
-  let!(:data_bus) { Bus.new(8) }
-  let!(:rwb) { Bus.new(1) }
+  let(:breadboard) { Breadboard.new }
+  let(:address_bus) { Bus.new(16) }
+  let(:data_bus) { Bus.new(8) }
+  let(:rwb) { Bus.new(1) }
   let!(:memory) do
     Memory.new(
       address_bus: address_bus,
       data_bus: data_bus,
       rwb: rwb,
-      enable: 0b1000_0000_0000_0000, # Enable for addresses > $8000
-      file_path: "test_memory"
+      enable: 0x4000,
+      address_mask: 0x3FFF,
+      file: StringIO.new("\xAC\xFF"),
+      size: 0x100
     )
   end
 
-  def destroy_memory
-    FileUtils.rm("test_memory") if File.exist?("test_memory")
-  end
-
-  before(:all) { destroy_memory }
-  after(:all) { destroy_memory }
-
   describe "#update" do
-    it "writes from the data bus within correct addresses" do
-      addr = 0b1000_0000_0000_1000
-      dat  = 0xFF
+    context "when rwb is high" do
+      it "writes to the data bus within correct addresses" do
+        breadboard.on_update { memory.update }
 
-      rwb.write(1)
-      address_bus.write(addr)
-      data_bus.write(dat)
-      rwb.write(0)
+        breadboard.update do
+          rwb.write(1)
+          address_bus.write(0x4000) # memory start
+        end
 
-      expect(memory.read(addr)).to eq(dat)
+        expect(data_bus.read).to eq(0xAC) # first byte
+
+        breadboard.update do
+          address_bus.write(0x4001) # Netx byte
+        end
+
+        expect(data_bus.read).to eq(0xFF)
+      end
+    end
+
+    context "when rwb is low" do
+      it "does not write to the data bus"
     end
   end
 end
