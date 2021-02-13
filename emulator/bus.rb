@@ -22,13 +22,13 @@ class Bus
 
   def on_read(mask = @mask, &block)
     @read_callbacks.push ->(val) do
-      block.call(val) if (mask || @mask) & val == mask
+      block.call(val) if mask & val == mask
     end
   end
 
   def on_write(mask = @mask, &block)
     @write_callbacks.push ->(val) do
-      block.call(val) if (mask || @mask) & val == mask
+      block.call(val) if mask & val == mask
     end
   end
 end
