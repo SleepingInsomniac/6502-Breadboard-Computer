@@ -26,10 +26,8 @@ RSpec.describe CPU65c02 do
   let!(:memory) do
     Memory.new(
       **bus_connections,
-      enable: 0x4000,
-      address_mask: 0x3FFF,
-      file: StringIO.new('', 'r+b'),
-      size: 0xFF
+      addresses: 0x4000..0x5FFF,
+      file: StringIO.new('', 'r+b')
     )
   end
 
@@ -54,14 +52,12 @@ RSpec.describe CPU65c02 do
     end
   end
 
-  describe "#operand" do
+  describe "Absolute Addressing" do
     it "returns a 2 byte address for Absolute a addressing" do
       rom = Memory.new(
         **bus_connections,
-        enable: 0x8000, # Enable for addresses > $8000
-        address_mask: 0x7FFF,
-        file: StringIO.new("\xAD\x02\x40"),
-        size: 0xF,
+        addresses: 0x8000..0x800F,
+        file: StringIO.new("\xAD\x04\x40\x42"),
         read_only: true
       )
 
@@ -80,7 +76,25 @@ RSpec.describe CPU65c02 do
 
       expect(instruction).to eq('LDA')
       expect(mode).to eq('a')
-      expect(cpu.operand(mode)).to eq(0x4002)
+      expect(cpu.operand(mode)).to eq(0x4004)
     end
   end
+
+  describe "Absolute Indexed Indirect Addressing" do
+  end
+
+  describe "Absolute Indexed with X Addressing"
+  describe "Absolute Indexed with Y Addressing"
+  describe "Absolute Indirect Addressing"
+  describe "Accumulator Addressing"
+  describe "Immediate Addressing"
+  describe "Implied Addressing"
+  describe "Program Counter Relative Addressing"
+  describe "Stack Addressing"
+  describe "Zero Page Addressing"
+  describe "Zero Page Indexed Indirect Addressing"
+  describe "Zero Page Indexed with X Addressing"
+  describe "Zero Page Indexed with Y Addressing"
+  describe "Zero Page Indirect Addressing"
+  describe "Zero Page Indirect Indexed with Y Addressing"
 end

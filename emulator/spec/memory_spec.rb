@@ -14,11 +14,16 @@ RSpec.describe Memory do
       address_bus: address_bus,
       data_bus: data_bus,
       rwb: rwb,
-      enable: 0x4000,
-      address_mask: 0x3FFF,
-      file: StringIO.new("\xAC\xFF"),
-      size: 0x100
+      addresses: 0x4000..0x4010,
+      file: StringIO.new("\xAC\xFF")
     )
+  end
+
+  describe "::uid" do
+    it "returns a sequential id at the class level" do
+      expect(Memory::uid).to eq(1)
+      expect(Memory::uid).to eq(2)
+    end
   end
 
   describe "#update" do
