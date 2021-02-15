@@ -1,11 +1,11 @@
 require_relative "../memory"
 require_relative "../bus"
-require_relative "../breadboard"
+require_relative "../clock"
 
 require 'stringio'
 
 RSpec.describe Memory do
-  let(:breadboard) { Breadboard.new }
+  let(:clock) { Clock.new }
   let(:address_bus) { Bus.new(16) }
   let(:data_bus) { Bus.new(8) }
   let(:rwb) { Bus.new(1) }
@@ -29,16 +29,16 @@ RSpec.describe Memory do
   describe "#update" do
     context "when rwb is high" do
       it "writes to the data bus within correct addresses" do
-        breadboard.on_update { memory.update }
+        clock.on_tick { memory.update }
 
-        breadboard.update do
+        clock.tick do
           rwb.write(1)
           address_bus.write(0x4000) # memory start
         end
 
         expect(data_bus.read).to eq(0xAC) # first byte
 
-        breadboard.update do
+        clock.tick do
           address_bus.write(0x4001) # Netx byte
         end
 
@@ -48,11 +48,11 @@ RSpec.describe Memory do
 
     context "when rwb is low" do
       it "does not write to the data bus" do
-        breadboard.on_update { memory.update }
+        clock.on_tick { memory.update }
 
         memory.write(0x4000, 0xAC)
 
-        breadboard.update do
+        clock.tick do
           rwb.write(0)
           data_bus.write(0xAA)
           address_bus.write(0x4000) # memory start

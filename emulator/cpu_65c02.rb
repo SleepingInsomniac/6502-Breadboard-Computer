@@ -107,7 +107,7 @@ class CPU65c02
     'RTI s', 'EOR (zp,x)', nil,        nil, nil,        'EOR zp',   'LSR zp',   'RMB4 zp', 'PHA s', 'EOR #',   'LSR A', nil,     'JMP a',     'EOR a',   'LSR a',   'BBR4 r', # 4
     'BVC r', 'EOR (zp),y', 'EOR (zp)', nil, nil,        'EOR zp,x', 'LSR zp,x', 'RMB5 zp', 'CLI i', 'EOR a,y', 'PHY s', nil,     nil,         'EOR a,x', 'LSR a,x', 'BBR5 r', # 5
     'RTS s', 'ADC (zp,x)', nil,        nil, 'STZ zp',   'ADC zp',   'ROR zp',   'RMB6 zp', 'PLA s', 'ADC #',   'ROR A', nil,     'JMP (a)',   'ADC a',   'ROR a',   'BBR6 r', # 6
-    'BVS r', 'ADC (zp),y', 'ADC (zp)', nil, 'STZ zp,x', 'ADC zp,x', 'ROR zp,x', 'RMB7 zp', 'SEI i', 'ADC a,y', 'PLY s', nil,     'JMP (a.x)', 'ADC a,x', 'ROR a,x', 'BBR7 r', # 7
+    'BVS r', 'ADC (zp),y', 'ADC (zp)', nil, 'STZ zp,x', 'ADC zp,x', 'ROR zp,x', 'RMB7 zp', 'SEI i', 'ADC a,y', 'PLY s', nil,     'JMP (a,x)', 'ADC a,x', 'ROR a,x', 'BBR7 r', # 7
     'BRA r', 'STA (zp,x)', nil,        nil, 'STY zp',   'STA zp',   'STX zp',   'SMB0 zp', 'DEY i', 'BIT #',   'TXA i', nil,     'STY a',     'STA a',   'STX a',   'BBS0 r', # 8
     'BCC r', 'STA (zp),y', 'STA (zp)', nil, 'STY zp,x', 'STA zp,x', 'STX zp,y', 'SMB1 zp', 'TYA i', 'STA a,y', 'TXS i', nil,     'STZ a',     'STA a,x', 'STZ a,x', 'BBS1 r', # 9
     'LDY #', 'LDA (zp,x)', 'LDX #',    nil, 'zp LDY',   'LDA zp',   'LDX zp',   'SMB2 zp', 'TAY i', 'LDA #',   'TAX i', nil,     'LDY A',     'LDA a',   'LDX a',   'BBS2 r', # A
@@ -123,32 +123,23 @@ class CPU65c02
   # - Index X
   # - Index Y
   # - Processor Status
-  #    [ N V 1 B D I Z C ]
-  #      | |   | | | | ^-- Carry          1 = true
-  #      | |   | | | ^---- Zero           1 = true
-  #      | |   | | ^------ IRQB Disable   1 = Disable
-  #      | |   | ^-------- Decimal Mode   1 = true
-  #      | |   ^---------- BRK            1 = BRK, 0 = IRQB
-  #      | ^-------------- Overflow       1 = true
-  #      ^---------------- Negative       1 = true
   # - Program Counter (16 bits internally PCH/PCL)
   # - Stack Pointer
-  attr_reader :a, :x, :y, :p, :pc, :s
+  attr_accessor :a, :x, :y, :p, :pc, :s
 
   # Pins
-  attr_reader :rwb # Read / Write bit
   attr_accessor :be # Bus enable
   attr_accessor :irqb # Interrupt Request
 
   # - @param address_bus : Bus - 16
   # - @param data_bus    : Bus - 8
   # - @param rwb         : Bus - 1
-  # - @param clock       : Bus - 1
-  def initialize(address_bus:, data_bus:, rwb:, breadboard:)
+  # - @param clock       : Clock
+  def initialize(address_bus:, data_bus:, rwb:, clock:)
     @address_bus = address_bus
     @data_bus = data_bus
     @rwb = rwb
-    @breadboard = breadboard
+    @clock = clock
 
     # Init registers
     @a  = 0b0000_0000
@@ -170,14 +161,18 @@ class CPU65c02
     # TODO: Do cpu stuff
   end
 
-  def read
-    @rwb.write(1) # Set read mode
-    data = @data_bus.read # Read data bus
-    @pc += 1 # Increment program counter
-    @breadboard.update do
-      @address_bus.write(pc) # output new address
+  def read(address)
+    @clock.tick do
+      @rwb.write(1) # Set read mode
+      @address_bus.write(address) # Write address to bus, with update
     end
-    data
+    data = @data_bus.read # Read data bus
+  end
+
+  # Read the next byte at the program counter
+  def read_next
+    @pc += 1
+    data = read(@pc)
   end
 
   # Decode the instruction and addressing mode of the given byte
@@ -193,9 +188,99 @@ class CPU65c02
   # ==== Addressing Modes ====
 
   def addr_absolute
-    adl = read # Read low order byte
-    adh = read # Read high order byte
-    (adh << 8) | adl # Combine to get 16 bit address
+    adl = read_next # Read low order byte
+    adh = read_next # Read high order byte
+    address = (adh << 8) | adl # Combine to get 16 bit address
+    read(address)
   end
 
+  def addr_absolute_indexed_indirect
+    adl = read_next; adh = read_next # Fetch next two bytes for indirect base address
+    ind_address = ((adh << 8) | adl) + @x # Combine to get 16 bit address + x reg
+    read(ind_address)
+  end
+
+  def addr_absolute_indexed_with_x
+  end
+
+  def addr_absolute_indexed_with_y
+  end
+
+  def addr_absolute_indirect
+  end
+
+  def addr_accumulator
+  end
+
+  def addr_immediate
+  end
+
+  def addr_implied
+  end
+
+  def addr_program_counter_relative
+  end
+
+  def addr_stack
+  end
+
+  def addr_zero_page
+  end
+
+  def addr_zero_page_indexed_indirect
+  end
+
+  def addr_zero_page_indexed_with_x
+  end
+
+  def addr_zero_page_indexed_with_y
+  end
+
+  def addr_zero_page_indirect
+  end
+
+  def addr_zero_page_indirect_indexed_with_y
+  end
+
+  # ==== Instructions ====
+
+  def lda(dat)
+    @a = dat & 0xF
+    flag_set(P_ZERO) if @a.zero?
+    flag_set(P_NEGATIVE) if @a & 0b1000_0000
+  end
+
+  # ==== P Flags ====
+
+  P_CARRY        = 1 << 0
+  P_ZERO         = 1 << 1
+  P_IRQB_DISABLE = 1 << 2
+  P_DECIMAL_MODE = 1 << 3
+  P_BRK          = 1 << 4
+  P_OVERFLOW     = 1 << 6
+  P_NEGATIVE     = 1 << 7
+
+  # - Processor Status
+  #      7 6 5 4 3 2 1 0
+  #    [ N V 1 B D I Z C ]
+  #      | |   | | | | ^-- Carry          1 = true
+  #      | |   | | | ^---- Zero           1 = true
+  #      | |   | | ^------ IRQB Disable   1 = Disable
+  #      | |   | ^-------- Decimal Mode   1 = true
+  #      | |   ^---------- BRK            1 = BRK, 0 = IRQB
+  #      | ^-------------- Overflow       1 = true
+  #      ^---------------- Negative       1 = true
+
+  def flag?(n)
+    p & n == n
+  end
+
+  def flag_set(n)
+    @p |= n
+  end
+
+  def flag_unset(n)
+    @p |= n
+    @p ^= n
+  end
 end
