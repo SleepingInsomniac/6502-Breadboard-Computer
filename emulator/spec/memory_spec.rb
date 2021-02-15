@@ -47,7 +47,20 @@ RSpec.describe Memory do
     end
 
     context "when rwb is low" do
-      it "does not write to the data bus"
+      it "does not write to the data bus" do
+        breadboard.on_update { memory.update }
+
+        memory.write(0x4000, 0xAC)
+
+        breadboard.update do
+          rwb.write(0)
+          data_bus.write(0xAA)
+          address_bus.write(0x4000) # memory start
+        end
+
+        expect(data_bus.read).not_to eq(0xAC)
+        expect(memory.read(0x4000)).to eq(0xAA) # Data bus wrote this
+      end
     end
   end
 end
