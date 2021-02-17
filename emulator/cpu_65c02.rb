@@ -187,67 +187,94 @@ class CPU65c02
 
   # ==== Addressing Modes ====
 
+  # a : 4 cycles (Read-Modify-Write, add 2 cycles)
   def addr_absolute
     adl = read_next # Read low order byte
     adh = read_next # Read high order byte
-    address = (adh << 8) | adl # Combine to get 16 bit address
-    read(address)
+    (adh << 8) | adl # Combine to get 16 bit address
   end
 
+  # (a,x) : 6 cycles
   def addr_absolute_indexed_indirect
-    adl = read_next; adh = read_next # Fetch next two bytes for indirect base address
-    ind_address = ((adh << 8) | adl) + @x # Combine to get 16 bit address + x reg
-    read(ind_address)
+    adl = read_next
+    adh = read_next # Fetch next two bytes for indirect base address
+    ind_addr = ((adh << 8) | adl) + @x # Combine to get 16 bit address + x reg
+    adl = read(ind_addr)
+    adh = read(ind_addr + 1)
+    ((adh << 8) | adl)
   end
 
+  # a,x
   def addr_absolute_indexed_with_x
+    adl = read_next
+    adh = read_next
+    ((adh << 8) | adl) + @x
   end
 
   def addr_absolute_indexed_with_y
+    adl = read_next; adh = read_next
+    ind_address = ((adh << 8) | adl) + @y
   end
 
   def addr_absolute_indirect
+    adl = read_next; adh = read_next
+    ind_address = ((adh << 8) | adl)
+    adl = read(ind_address)
+    adh = read(ind_address + 1)
+    ((adh << 8) | adl)
   end
 
   def addr_accumulator
+    @a
   end
 
   def addr_immediate
+    read_next # return the next byte
   end
 
   def addr_implied
+    # Nothing to do here.
   end
 
   def addr_program_counter_relative
+    offset = read_next
+    @pc + offset
   end
 
   def addr_stack
+    @s
   end
 
   def addr_zero_page
+    read_next
   end
 
   def addr_zero_page_indexed_indirect
+    read_next + @x
   end
 
   def addr_zero_page_indexed_with_x
+    read_next + @x
   end
 
   def addr_zero_page_indexed_with_y
+    read_next + @y
   end
 
   def addr_zero_page_indirect
+    read_next
   end
 
   def addr_zero_page_indirect_indexed_with_y
+    read_next + @y
   end
 
   # ==== Instructions ====
 
-  def lda(dat)
-    @a = dat & 0xF
+  def lda(mode)
+    @a = operand(mode) & 0xFF
     flag_set(P_ZERO) if @a.zero?
-    flag_set(P_NEGATIVE) if @a & 0b1000_0000
+    flag_set(P_NEGATIVE) if @a & 0b1000_0000 != 0
   end
 
   # ==== P Flags ====

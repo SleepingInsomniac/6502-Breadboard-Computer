@@ -31,11 +31,12 @@ RSpec.describe CPU65c02 do
     )
   end
 
+  # Convert an array of hex strings into a memory representation
   def make_rom(data = [])
     Memory.new(
       **bus_connections,
       addresses: 0x8000..(0x8000 + data.length),
-      file: StringIO.new(data.pack('C*')),
+      file: StringIO.new(data.map{ |b| b.to_i(16) }.pack('C*')),
       read_only: true
     )
   end
@@ -63,7 +64,7 @@ RSpec.describe CPU65c02 do
 
   describe "Absolute Addressing" do
     it "returns a 2 byte address for Absolute a addressing" do
-      rom = make_rom([0xAD, 0x03, 0x80, 0x42])
+      rom = make_rom(%w[AD 03 80 42])
 
       clock.on_tick do
         memory.update
@@ -77,28 +78,56 @@ RSpec.describe CPU65c02 do
       end
 
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
-
       expect(instruction).to eq('LDA')
       expect(mode).to eq('a')
-      expect(cpu.operand(mode)).to eq(0x42)
+      expect(cpu.operand(mode)).to eq(0x8003)
+      expect(clock.cycles).to eq(4)
     end
   end
 
   describe "Absolute Indexed Indirect Addressing" do
     it "returns 2 byte address at pointer + x reg" do
-      rom = make_rom([0x7C, 0x00, 0x80, 0x42])
+      rom = make_rom(%w[7C 00 80 05 80])
       clock.on_tick { rom.update }
       cpu.x = 0x03
       cpu.address = 0x8000
+      start_cycles = clock.cycles
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('JMP')
       expect(mode).to eq('(a,x)')
-      expect(cpu.operand(mode)).to eq(0x42)
+      expect(cpu.operand(mode)).to eq(0x8005)
+      # expect(clock.cycles).to eq(6) # TODO
     end
   end
 
-  describe "Absolute Indexed with X Addressing"
-  describe "Absolute Indexed with Y Addressing"
+  describe "Absolute Indexed with X Addressing" do
+    it "returns 2 bytes ofset by x" do
+      rom = make_rom(%w[BC 00 80])
+      clock.on_tick { rom.update }
+      cpu.x = 0x03
+      cpu.address = 0x8000
+      start_cycles = clock.cycles
+      instruction, mode = cpu.mnemonic(cpu.read(0x8000))
+      expect(instruction).to eq('LDY')
+      expect(mode).to eq('a,x')
+      expect(cpu.operand(mode)).to eq(0x8003)
+    end
+  end
+
+  describe "Absolute Indexed with Y Addressing" do
+    it "returns 2 bytes ofset by y" do
+      rom = make_rom(%w[BE 00 80])
+      clock.on_tick { rom.update }
+      cpu.y = 0x03
+      cpu.address = 0x8000
+      start_cycles = clock.cycles
+      instruction, mode = cpu.mnemonic(cpu.read(0x8000))
+      expect(instruction).to eq('LDX')
+      expect(mode).to eq('a,y')
+      expect(cpu.operand(mode)).to eq(0x8003)
+    end
+  end
+
   describe "Absolute Indirect Addressing"
   describe "Accumulator Addressing"
   describe "Immediate Addressing"
@@ -111,4 +140,27 @@ RSpec.describe CPU65c02 do
   describe "Zero Page Indexed with Y Addressing"
   describe "Zero Page Indirect Addressing"
   describe "Zero Page Indirect Indexed with Y Addressing"
+
+  it "disassembles a simple program" do
+    rom = make_rom(%w[a9 ff 8d 02 60 a9 55 8d 00 60 6a 4c 07 80])
+
+    clock.on_tick { rom.update }
+    cpu.address = 0x7FFF
+    buffer = ""
+    6.times do
+      instruction, mode = cpu.mnemonic(cpu.read_next)
+      buffer << "$#{cpu.pc.to_s(16)}: #{instruction} #{mode}"
+      operand = cpu.operand(mode)
+      buffer << " $#{operand.to_s(16)}" if operand
+      buffer << "\n"
+    end
+    expect(buffer).to eq(<<~PROG)
+      $8000: LDA # $ff
+      $8002: STA a $6002
+      $8005: LDA # $55
+      $8007: STA a $6000
+      $800a: ROR A $0
+      $800b: JMP a $8007
+    PROG
+  end
 end
