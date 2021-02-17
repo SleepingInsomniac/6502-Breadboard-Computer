@@ -5,11 +5,10 @@ reset:
   lda #$ff
   sta $6002
 
-loop:
   lda #%01010101  ; Pattern of LEDs to blink
+loop:
   sta $6000       ; store pattern on port b where leds are located
   ror             ; rotate the a register to the right
-  sta $6000       ; store the updated register to the LEDs
   jmp loop
 
   .org $fffc      ; CPU reads this address for where to start execution
