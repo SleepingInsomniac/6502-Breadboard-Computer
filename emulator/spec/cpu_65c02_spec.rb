@@ -91,7 +91,6 @@ RSpec.describe CPU65c02 do
       clock.on_tick { rom.update }
       cpu.x = 0x03
       cpu.address = 0x8000
-      start_cycles = clock.cycles
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('JMP')
       expect(mode).to eq('(a,x)')
@@ -106,7 +105,6 @@ RSpec.describe CPU65c02 do
       clock.on_tick { rom.update }
       cpu.x = 0x03
       cpu.address = 0x8000
-      start_cycles = clock.cycles
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('LDY')
       expect(mode).to eq('a,x')
@@ -120,7 +118,6 @@ RSpec.describe CPU65c02 do
       clock.on_tick { rom.update }
       cpu.y = 0x03
       cpu.address = 0x8000
-      start_cycles = clock.cycles
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('LDX')
       expect(mode).to eq('a,y')

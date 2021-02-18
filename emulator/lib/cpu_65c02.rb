@@ -166,13 +166,13 @@ class CPU65c02
       @rwb.write(1) # Set read mode
       @address_bus.write(address) # Write address to bus, with update
     end
-    data = @data_bus.read # Read data bus
+    @data_bus.read # Read data bus
   end
 
   # Read the next byte at the program counter
   def read_next
     @pc += 1
-    data = read(@pc)
+    read(@pc)
   end
 
   # Decode the instruction and addressing mode of the given byte
@@ -213,7 +213,7 @@ class CPU65c02
 
   def addr_absolute_indexed_with_y
     adl = read_next; adh = read_next
-    ind_address = ((adh << 8) | adl) + @y
+    ((adh << 8) | adl) + @y
   end
 
   def addr_absolute_indirect

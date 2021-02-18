@@ -12,8 +12,6 @@ class Bus
 
   def write(value)
     @data = value & @mask
-    old_val = @data
-    @data = new_val
   end
 
   def to_s(radix = 16)
