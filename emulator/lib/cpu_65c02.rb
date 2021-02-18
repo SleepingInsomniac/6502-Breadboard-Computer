@@ -392,7 +392,7 @@ class CPU65c02
   def jsr(mode)
     write(@p, @s += 1) # Store processor status on stack
     write(@pc & 0xF, @s += 1) # Store program counter (low order)
-    write(@pc >> 4, @s += 1) # Store PC (High order)
+    write(@pc >> 8, @s += 1) # Store PC (High order)
     @pc = operand(mode) # Set program counter
     flag_set P_ZERO, @pc.zero? # datasheet says these get set?
     flag_set P_NEGATIVE, @pc[15] == 1 # TODO: Is this even right??
