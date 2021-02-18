@@ -155,10 +155,11 @@ class CPU65c02
     @address_bus.write(@pc)
   end
 
-  def tick
+  def step
     # Get the instruction from the current address on the databus
-    _mnemonic, _mode = mnemonic(read)
-    # TODO: Do cpu stuff
+    mnemonic, mode = mnemonic(read)
+    # Call the instruction with the correct addressing mode
+    send(mnemonic.downcase, mode)
   end
 
   def read(address)
@@ -167,6 +168,15 @@ class CPU65c02
       @address_bus.write(address) # Write address to bus, with update
     end
     @data_bus.read # Read data bus
+  end
+
+  def write(data, address)
+    @clock.tick do
+      @rwb.write(0) # Set write mode
+      @data_bus.write(data) # Output on data bus
+      @address_bus.write(address) # Write address to bus
+    end
+    @rwb.write(1)
   end
 
   # Read the next byte at the program counter
@@ -271,10 +281,244 @@ class CPU65c02
 
   # ==== Instructions ====
 
+  def adc(mode) # N V Z C
+    value = operand(mode)
+    flag_set P_NEGATIVE, (@a + value)[7] == 1
+    flag_set P_OVERFLOW, (@a + value)[7] == 1 && @a[7] == 1 && value[7] == 1
+    flag_set P_ZERO,     (@a + value) & 0xFF == 0
+    flag_set P_CARRY,    @a > 0xFF
+    @a = (@a + value) & 0xFF
+  end
+
+  def and(mode) # N Z
+    @a &= operand(mode)
+  end
+
+  def asl(mode) # N Z C
+  end
+
+  def bbr(mode)
+  end
+
+  def bbs(mode)
+  end
+
+  def bcc(mode)
+  end
+
+  def bcs(mode)
+  end
+
+  def beq(mode)
+  end
+
+  def bit(mode) # N:M7 V:M6 Z
+    value = operand(mode)
+    @a ^= value
+    flag_set P_NEGATIVE, value[7] == 1
+    flag_set P_OVERFLOW, value[6] == 1 # TODO: check if overflow 2's compliment correctly?
+    flag_set P_ZERO,     @a.zero?
+  end
+
+  def bmi(mode)
+  end
+
+  def bne(mode)
+  end
+
+  def bpl(mode)
+  end
+
+  def bra(mode)
+  end
+
+  def brk(mode) # B D I
+    flag_set(P_BRK,          true)
+    flag_set(P_DECIMAL_MODE, false)
+    flag_set(P_IRQB_DISABLE, true)
+  end
+
+  def bvc(mode)
+  end
+
+  def bvs(mode)
+  end
+
+  def clc(mode)
+  end
+
+  def cld(mode)
+  end
+
+  def cli(mode)
+  end
+
+  def clv(mode)
+  end
+
+  def cmp(mode)
+  end
+
+  def cpx(mode)
+  end
+
+  def cpy(mode)
+  end
+
+  def dec(mode)
+  end
+
+  def dex(mode)
+  end
+
+  def dey(mode)
+  end
+
+  def eor(mode)
+  end
+
+  def inc(mode)
+  end
+
+  def inx(mode)
+  end
+
+  def iny(mode)
+  end
+
+  def jmp(mode)
+  end
+
+  def jsr(mode)
+    write(@p, @s += 1) # Store processor status on stack
+    write(@pc & 0xF, @s += 1) # Store program counter (low order)
+    write(@pc >> 4, @s += 1) # Store PC (High order)
+    @pc = operand(mode) # Set program counter
+    flag_set P_ZERO, @pc.zero? # datasheet says these get set?
+    flag_set P_NEGATIVE, @pc[15] == 1 # TODO: Is this even right??
+  end
+
   def lda(mode)
     @a = operand(mode) & 0xFF
-    flag_set(P_ZERO) if @a.zero?
-    flag_set(P_NEGATIVE) if @a & 0b1000_0000 != 0
+    flag_set P_ZERO,     @a.zero?
+    flag_set P_NEGATIVE, @a[7] == 1
+  end
+
+  def ldx(mode)
+    @x = operand(mode) & 0xFF
+    flag_set P_ZERO      @x.zero?
+    flag_set P_NEGATIVE, @x[7] == 1
+  end
+
+  def ldy(mode)
+    @y = operand(mode) & 0xFF
+    flag_set P_ZERO,     @y.zero?
+    flag_set P_NEGATIVE, @y[7] == 1
+  end
+
+  def lsr(mode)
+  end
+
+  def nop(mode)
+  end
+
+  def ora(mode)
+  end
+
+  def pha(mode)
+  end
+
+  def php(mode)
+  end
+
+  def phx(mode)
+  end
+
+  def phy(mode)
+  end
+
+  def pla(mode)
+  end
+
+  def plp(mode)
+  end
+
+  def plx(mode)
+  end
+
+  def ply(mode)
+  end
+
+  def rmb(mode)
+  end
+
+  def rol(mode)
+  end
+
+  def ror(mode)
+  end
+
+  def rti(mode)
+  end
+
+  def rts(mode)
+  end
+
+  def sbc(mode)
+  end
+
+  def sec(mode)
+  end
+
+  def sed(mode)
+  end
+
+  def sei(mode)
+  end
+
+  def smb(mode)
+  end
+
+  def sta(mode)
+  end
+
+  def stp(mode)
+  end
+
+  def stx(mode)
+  end
+
+  def sty(mode)
+  end
+
+  def stz(mode)
+  end
+
+  def tax(mode)
+  end
+
+  def tay(mode)
+  end
+
+  def trb(mode)
+  end
+
+  def tsb(mode)
+  end
+
+  def tsx(mode)
+  end
+
+  def txa(mode)
+  end
+
+  def txs(mode)
+  end
+
+  def tya(mode)
+  end
+
+  def wai(mode)
   end
 
   # ==== P Flags ====
@@ -302,12 +546,12 @@ class CPU65c02
     p & n == n
   end
 
-  def flag_set(n)
-    @p |= n
-  end
-
-  def flag_unset(n)
-    @p |= n
-    @p ^= n
+  def flag_set(n, set = true)
+    if set
+      @p |= n
+    else
+      @p |= n
+      @p ^= n
+    end
   end
 end
