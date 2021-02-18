@@ -1,6 +1,6 @@
-require_relative "../memory"
-require_relative "../bus"
-require_relative "../clock"
+require_relative "../lib/memory"
+require_relative "../lib/bus"
+require_relative "../lib/clock"
 
 require 'stringio'
 

@@ -11,7 +11,7 @@ class Bus
   end
 
   def write(value)
-    new_val = value & @mask
+    @data = value & @mask
     old_val = @data
     @data = new_val
   end

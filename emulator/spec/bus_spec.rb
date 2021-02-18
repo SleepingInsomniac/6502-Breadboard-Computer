@@ -1,4 +1,4 @@
-require_relative "../bus.rb"
+require_relative "../lib/bus.rb"
 
 RSpec.describe Bus do
   let(:bus) { Bus.new(8) }

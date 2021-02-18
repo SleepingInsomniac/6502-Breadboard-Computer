@@ -1,7 +1,7 @@
-require_relative "../cpu_65c02.rb"
-require_relative "../bus.rb"
-require_relative "../memory"
-require_relative "../clock"
+require_relative "../lib/cpu_65c02.rb"
+require_relative "../lib/bus.rb"
+require_relative "../lib/memory"
+require_relative "../lib/clock"
 
 require 'stringio'
 
