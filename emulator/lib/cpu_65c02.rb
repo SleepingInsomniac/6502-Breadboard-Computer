@@ -170,11 +170,11 @@ class CPU65c02
     @data_bus.read # Read data bus
   end
 
-  def write(data, address)
+  def write(data, to:)
     @clock.tick do
       @rwb.write(0) # Set write mode
       @data_bus.write(data) # Output on data bus
-      @address_bus.write(address) # Write address to bus
+      @address_bus.write(to) # Write address to bus
     end
     @rwb.write(1)
   end
@@ -281,6 +281,7 @@ class CPU65c02
 
   # ==== Instructions ====
 
+  # Add with carry
   def adc(mode) # N V Z C
     value = operand(mode)
     flag_set P_NEGATIVE, (@a + value)[7] == 1
@@ -290,46 +291,81 @@ class CPU65c02
     @a = (@a + value) & 0xFF
   end
 
+  # And accumulator with memory
   def and(mode) # N Z
     @a &= operand(mode)
   end
 
+  # Shift left one bit
   def asl(mode) # N Z C
+    if mode == 'Implied'
+      @a <<= 1
+      flag_set(P_CARRY, @a[8])
+      @a &= 0xF
+    else
+      address = operand(mode)
+      memory = read(address)
+      memory <<= 1
+      flag_set(P_CARRY, memory[8])
+      write(memory, to: address)
+    end
   end
 
+  # Branch bit reset
   def bbr(mode)
+    # TODO 0-7
   end
 
+  # Branch bit set
   def bbs(mode)
+    # TODO : 0-7
   end
 
+  # Branch carry clear
   def bcc(mode)
+    @pc = addr unless flag?(P_CARRY)
   end
 
+  # Branch carry set
   def bcs(mode)
+    @pc = operand(mode) if flag?(P_CARRY)
   end
 
+  # Branch if equal
   def beq(mode)
+    @pc = operand(mode) if flag?(P_ZERO)
   end
 
+  # Bit test
   def bit(mode) # N:M7 V:M6 Z
     value = operand(mode)
-    @a ^= value
-    flag_set P_NEGATIVE, value[7] == 1
-    flag_set P_OVERFLOW, value[6] == 1 # TODO: check if overflow 2's compliment correctly?
-    flag_set P_ZERO,     @a.zero?
+    value ^= @a
+    # Does not affect the NV flags
+    # This is the only instruction with addressing dependent flags
+    if mode != "Immediate"
+      flag_set P_NEGATIVE, value[7] == 1
+      flag_set P_OVERFLOW, value[6] == 1 # TODO: check if overflow 2's compliment correctly?
+    end
+    flag_set P_ZERO,     value & @a == 0
   end
 
+  # Branch on result minus
   def bmi(mode)
+    @pc = operand(mode) if flag?(P_NEGATIVE)
   end
 
+  # Branch on result not zero
   def bne(mode)
+    @pc = operand(mode) unless flag?(P_ZERO)
   end
 
+  # Branch on result plus
   def bpl(mode)
+    @pc = operand(mode) unless flag?(P_NEGATIVE)
   end
 
   def bra(mode)
+    @pc = operand(mode)
   end
 
   def brk(mode) # B D I
@@ -339,21 +375,27 @@ class CPU65c02
   end
 
   def bvc(mode)
+    @pc = operand(mode) unless flag?(P_OVERFLOW)
   end
 
   def bvs(mode)
+    @pc = operand(mode) if flag?(P_OVERFLOW)
   end
 
   def clc(mode)
+    flag_set(P_CARRY, 0)
   end
 
   def cld(mode)
+    flag_set(P_DECIMAL_MODE, 0)
   end
 
   def cli(mode)
+    flag_set(P_IRQB_DISABLE, 0)
   end
 
   def clv(mode)
+    flag_set(P_OVERFLOW, 0)
   end
 
   def cmp(mode)
@@ -390,9 +432,9 @@ class CPU65c02
   end
 
   def jsr(mode)
-    write(@p, @s += 1) # Store processor status on stack
-    write(@pc & 0xF, @s += 1) # Store program counter (low order)
-    write(@pc >> 8, @s += 1) # Store PC (High order)
+    write(@p,        to: @s += 1) # Store processor status on stack
+    write(@pc & 0xF, to: @s += 1) # Store program counter (low order)
+    write(@pc >> 8,  to: @s += 1) # Store PC (High order)
     @pc = operand(mode) # Set program counter
     flag_set P_ZERO, @pc.zero? # datasheet says these get set?
     flag_set P_NEGATIVE, @pc[15] == 1 # TODO: Is this even right??
@@ -547,11 +589,7 @@ class CPU65c02
   end
 
   def flag_set(n, set = true)
-    if set
-      @p |= n
-    else
-      @p |= n
-      @p ^= n
-    end
+    @p |= n
+    @p ^= n unless set
   end
 end
