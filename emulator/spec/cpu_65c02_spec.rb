@@ -160,4 +160,103 @@ RSpec.describe CPU65c02 do
       $800b: JMP a $8007
     PROG
   end
+
+  describe "CPU Instructions" do
+    describe 'ADC'
+    describe 'AND'
+    describe 'ASL'
+    describe 'BBR'
+    describe 'BBS'
+    describe 'BCC'
+    describe 'BCS'
+    describe 'BEQ'
+    describe 'BIT'
+    describe 'BMI'
+    describe 'BNE'
+    describe 'BPL'
+    describe 'BRA'
+    describe 'BRK'
+    describe 'BVC'
+    describe 'BVS'
+    describe 'CLC'
+    describe 'CLD'
+    describe 'CLI'
+    describe 'CLV'
+
+    describe "CMP" do
+      context "with immediate addressing" do
+        it "sets the zero flag when memory matches accumulator" do
+          # lda #42 - a9 2a
+          # cmp #42 - c9 2a
+          rom = make_rom(%w[a9 2a c9 2a])
+          clock.on_tick { rom.update }
+          cpu.address = 0x8000 # Set address to our rom location
+          cpu.step
+          expect(cpu.a).to eq(42)
+        end
+      end
+    end
+
+    describe 'CPX'
+    describe 'CPY'
+    describe 'DEC'
+    describe 'DEX'
+    describe 'DEY'
+    describe 'EOR'
+    describe 'INC'
+    describe 'INX'
+    describe 'INY'
+    describe 'JMP'
+    describe 'JSR'
+
+    describe "LDA" do
+      context "with immediate addressing" do
+        it "loads the a register" do
+          rom = make_rom(%w[a9 42]) # lda #$42
+          clock.on_tick { rom.update }
+          cpu.address = 0x8000 # ROM
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
+      end
+    end
+
+    describe 'LDX'
+    describe 'LDY'
+    describe 'LSR'
+    describe 'NOP'
+    describe 'ORA'
+    describe 'PHA'
+    describe 'PHP'
+    describe 'PHX'
+    describe 'PHY'
+    describe 'PLA'
+    describe 'PLP'
+    describe 'PLX'
+    describe 'PLY'
+    describe 'RMB'
+    describe 'ROL'
+    describe 'ROR'
+    describe 'RTI'
+    describe 'RTS'
+    describe 'SBC'
+    describe 'SEC'
+    describe 'SED'
+    describe 'SEI'
+    describe 'SMB'
+    describe 'STA'
+    describe 'STP'
+    describe 'STX'
+    describe 'STY'
+    describe 'STZ'
+    describe 'TAX'
+    describe 'TAY'
+    describe 'TRB'
+    describe 'TSB'
+    describe 'TSX'
+    describe 'TXA'
+    describe 'TXS'
+    describe 'TYA'
+    describe 'WAI'
+  end
 end

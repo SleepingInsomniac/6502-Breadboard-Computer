@@ -157,7 +157,7 @@ class CPU65c02
 
   def step
     # Get the instruction from the current address on the databus
-    mnemonic, mode = mnemonic(read)
+    mnemonic, mode = mnemonic(read(@pc))
     # Call the instruction with the correct addressing mode
     send(mnemonic.downcase, mode)
   end
@@ -300,13 +300,13 @@ class CPU65c02
   def asl(mode) # N Z C
     if mode == 'Implied'
       @a <<= 1
-      flag_set(P_CARRY, @a[8])
+      flag_set(P_CARRY, @a[8] == 1)
       @a &= 0xF
     else
       address = operand(mode)
       memory = read(address)
       memory <<= 1
-      flag_set(P_CARRY, memory[8])
+      flag_set(P_CARRY, memory[8] == 1)
       write(memory, to: address)
     end
   end
@@ -383,28 +383,45 @@ class CPU65c02
   end
 
   def clc(mode)
-    flag_set(P_CARRY, 0)
+    flag_set(P_CARRY, false)
   end
 
   def cld(mode)
-    flag_set(P_DECIMAL_MODE, 0)
+    flag_set(P_DECIMAL_MODE, false)
   end
 
   def cli(mode)
-    flag_set(P_IRQB_DISABLE, 0)
+    flag_set(P_IRQB_DISABLE, false)
   end
 
   def clv(mode)
-    flag_set(P_OVERFLOW, 0)
+    flag_set(P_OVERFLOW, false)
   end
 
+  # Compare memory and accumulator
+  # flags affected: N Z C
   def cmp(mode)
+    value = operand(mode)
+    result = @a - value
+    flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
+    flag_set P_ZERO,     (result & 0xFF).zero?
+    flag_set P_CARRY,    result[8]
   end
 
   def cpx(mode)
+    value = operand(mode)
+    result = @x - value
+    flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
+    flag_set P_ZERO,     (result & 0xFF).zero?
+    flag_set P_CARRY,    result[8]
   end
 
   def cpy(mode)
+    value = operand(mode)
+    result = @y - value
+    flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
+    flag_set P_ZERO,     (result & 0xFF).zero?
+    flag_set P_CARRY,    result[8]
   end
 
   def dec(mode)
