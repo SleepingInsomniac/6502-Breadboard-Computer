@@ -4,6 +4,8 @@ require_relative "../lib/memory"
 require_relative "../lib/clock"
 
 require 'stringio'
+require 'tempfile'
+require 'digest/sha1'
 
 RSpec.describe CPU65c02 do
   let(:clock) { Clock.new }
@@ -26,7 +28,7 @@ RSpec.describe CPU65c02 do
   let!(:memory) do
     Memory.new(
       **bus_connections,
-      addresses: 0x4000..0x5FFF,
+      addresses: 0x0000..0x5FFF,
       file: StringIO.new('', 'r+b')
     )
   end
@@ -37,6 +39,16 @@ RSpec.describe CPU65c02 do
       **bus_connections,
       addresses: 0x8000..(0x8000 + data.length),
       file: StringIO.new(data.map{ |b| b.to_i(16) }.pack('C*')),
+      read_only: true
+    )
+  end
+
+  def assemble_rom(asm)
+    data = assemble(asm)
+    Memory.new(
+      **bus_connections,
+      addresses: 0x8000..(0x8000 + data.length),
+      file: StringIO.new(data),
       read_only: true
     )
   end
@@ -164,6 +176,18 @@ RSpec.describe CPU65c02 do
   # ==========================
   # = OP Code / Instructions =
   # ==========================
+
+  def assemble(prog)
+    digest = Digest::SHA1.hexdigest(prog)
+    fixture = "spec/fixtures/#{digest}"
+    unless File.exist?(fixture)
+      file = Tempfile.new('spec.s')
+      file.write(prog)
+      file.close
+      `vasm6502_oldstyle -Fbin -dotdir #{file.path} -o #{fixture}`
+    end
+    File.read(fixture)
+  end
 
   describe "CPU Instructions" do
     describe "ADC" do
@@ -861,6 +885,24 @@ RSpec.describe CPU65c02 do
 
       context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
         # op code: a1
+        it "loads a with the correct value" do
+          rom = assemble_rom(<<~ASM)
+              .org 8000
+            main:
+              lda (0,x)
+              sta $6000
+          ASM
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+          cpu.address = 0x7FFF # ROM
+          cpu.x = 0x05
+          memory.write(0x0000, 0x03)
+          cpu.step
+          # $0000 : 03 + 05 = 08
+          expect(cpu.a).to eq(0x08)
+        end
       end
 
       context "with addressing mode: 'zp, Zero Page'" do

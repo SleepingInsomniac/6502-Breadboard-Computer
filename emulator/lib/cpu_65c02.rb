@@ -152,7 +152,8 @@ class CPU65c02
   end
 
   def addr_zero_page_indexed_indirect
-    read_next + @x
+    adl = read_next
+    read(adl) + @x
   end
 
   def addr_zero_page_indexed_with_x
