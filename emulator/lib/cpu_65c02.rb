@@ -1,3 +1,7 @@
+require_relative './cpu_65c02/op_codes'
+require_relative './cpu_65c02/addressing_modes'
+require_relative './cpu_65c02/instructions'
+
 class CPU65c02
   VECTORS = {
     BRK:  0xFFFE,
@@ -5,118 +9,6 @@ class CPU65c02
     RESB: 0xFFFC,
     NMIB: 0xFFFA,
   }
-
-  ADDRESSING_MODES = {
-    'a'      => 'Absolute',
-    '(a,x)'  => 'Absolute Indexed Indirect',
-    'a,x'    => 'Absolute Indexed with X',
-    'a,y'    => 'Absolute Indexed with Y',
-    '(a)'    => 'Absolute Indirect',
-    'A'      => 'Accumulator',
-    '#'      => 'Immediate',
-    'i'      => 'Implied',
-    'r'      => 'Program Counter Relative',
-    's'      => 'Stack',
-    'zp'     => 'Zero Page',
-    '(zp,x)' => 'Zero Page Indexed Indirect',
-    'zp,x'   => 'Zero Page Indexed with X',
-    'zp,y'   => 'Zero Page Indexed with Y',
-    '(zp)'   => 'Zero Page Indirect',
-    '(zp),y' => 'Zero Page Indirect Indexed with Y',
-  }
-
-  INSTRUCTIONS = {
-    'ADC' =>  'ADd memory to accumulator with Carry',
-    'AND' =>  '"AND" memory with accumulator',
-    'ASL' =>  'Arithmetic Shift one bit Left, memory or accumulator',
-    'BBR' =>  'Branch on Bit Reset',
-    'BBS' =>  'Branch of Bit Set',
-    'BCC' =>  'Branch on Carry Clear (Pc=0)',
-    'BCS' =>  'Branch on Carry Set (Pc=1)',
-    'BEQ' =>  'Branch if EQual (Pz=1)',
-    'BIT' =>  'BIt Test',
-    'BMI' =>  'Branch if result MInus (Pn=1)',
-    'BNE' =>  'Branch if Not Equal (Pz=0)',
-    'BPL' =>  'Branch if result PLus (Pn=0)',
-    'BRA' =>  'BRanch Always',
-    'BRK' =>  'BReaK instruction',
-    'BVC' =>  'Branch on oVerflow Clear (Pv=0)',
-    'BVS' =>  'Branch on oVerflow Set (Pv=1)',
-    'CLC' =>  'CLear Cary flag',
-    'CLD' =>  'CLear Decimal mode',
-    'CLI' =>  'CLear Interrupt disable bit',
-    'CLV' =>  'CLear oVerflow flag',
-    'CMP' =>  'CoMPare memory and accumulator',
-    'CPX' =>  'ComPare memory and X register',
-    'CPY' =>  'ComPare memory and Y register',
-    'DEC' =>  'DECrement memory or accumulate by one',
-    'DEX' =>  'DEcrement X by one',
-    'DEY' =>  'DEcrement Y by one',
-    'EOR' =>  '"Exclusive OR" memory with accumulate',
-    'INC' =>  'INCrement memory or accumulate by one',
-    'INX' =>  'INcrement X register by one',
-    'INY' =>  'INcrement Y register by one',
-    'JMP' =>  'JuMP to new location',
-    'JSR' =>  'Jump to new location Saving Return (Jump to SubRoutine)',
-    'LDA' =>  'LoaD Accumulator with memory',
-    'LDX' =>  'LoaD the X register with memory',
-    'LDY' =>  'LoaD the Y register with memory',
-    'LSR' =>  'Logical Shift one bit Right memory or accumulator',
-    'NOP' =>  'No OPeration',
-    'ORA' =>  '"OR" memory with Accumulator',
-    'PHA' =>  'PusH Accumulator on stack',
-    'PHP' =>  'PusH Processor status on stack',
-    'PHX' =>  'PusH X register on stack',
-    'PHY' =>  'PusH Y register on stack',
-    'PLA' =>  'PuLl Accumulator from stack',
-    'PLP' =>  'PuLl Processor status from stack',
-    'PLX' =>  'PuLl X register from stack',
-    'PLY' =>  'PuLl Y register from stack',
-    'RMB' =>  'Reset Memory Bit',
-    'ROL' =>  'ROtate one bit Left memory or accumulator',
-    'ROR' =>  'ROtate one bit Right memory or accumulator',
-    'RTI' =>  'ReTurn from Interrupt',
-    'RTS' =>  'ReTurn from Subroutine',
-    'SBC' =>  'SuBtract memory from accumulator with borrow (Carry bit)',
-    'SEC' =>  'SEt Carry',
-    'SED' =>  'SEt Decimal mode',
-    'SEI' =>  'SEt Interrupt disable status',
-    'SMB' =>  'Set Memory Bit',
-    'STA' =>  'STore Accumulator in memory',
-    'STP' =>  'SToP mode',
-    'STX' =>  'STore the X register in memory',
-    'STY' =>  'STore the Y register in memory',
-    'STZ' =>  'STore Zero in memory',
-    'TAX' =>  'Transfer the Accumulator to the X register',
-    'TAY' =>  'Transfer the Accumulator to the Y register',
-    'TRB' =>  'Test and Reset memory Bit',
-    'TSB' =>  'Test and Set memory Bit',
-    'TSX' =>  'Transfer the Stack pointer to the X register',
-    'TXA' =>  'Transfer the X register to the Accumulator',
-    'TXS' =>  'Transfer the X register to the Stack pointer register',
-    'TYA' =>  'Transfer Y register to the Accumulator',
-    'WAI' =>  'WAit for Interrupt',
-  }
-
-  OP_CODES = [
-  #  0        1             2           3    4           5           6           7           8       9          A        B        C            D          E          F
-    'BRK s', 'ORA (zp,x)', nil,        nil, 'TSB zp',   'ORA zp',   'ASL zp',   'RMB0 zp', 'PHP s', 'ORA #',   'ASL A', nil,     'TSB a',     'ORA a',   'ASL a',   'BBR0 r', # 0
-    'BPL r', 'ORA (zp),y', 'ORA (zp)', nil, 'TRB zp',   'ORA zp,x', 'ASL zp,x', 'RMB1 zp', 'CLC i', 'ORA a,y', 'INC A', nil,     'TRB a',     'ORA a,x', 'ASL a,x', 'BBR1 r', # 1
-    'JSR a', 'AND (zp,x)', nil,        nil, 'BIT zp',   'AND zp',   'ROL zp',   'RMB2 zp', 'PLP s', 'AND #',   'ROL A', nil,     'BIT a',     'AND a',   'ROL a',   'BBR2 r', # 2
-    'BMI r', 'AND (zp),y', 'AND (zp)', nil, 'BIT zp,x', 'AND zp,x', 'ROL zp,x', 'RMB3 zp', 'SEC I', 'AND a,y', 'DEC A', nil,     'BIT a,x',   'AND a,x', 'ROL a,x', 'BBR3 r', # 3
-    'RTI s', 'EOR (zp,x)', nil,        nil, nil,        'EOR zp',   'LSR zp',   'RMB4 zp', 'PHA s', 'EOR #',   'LSR A', nil,     'JMP a',     'EOR a',   'LSR a',   'BBR4 r', # 4
-    'BVC r', 'EOR (zp),y', 'EOR (zp)', nil, nil,        'EOR zp,x', 'LSR zp,x', 'RMB5 zp', 'CLI i', 'EOR a,y', 'PHY s', nil,     nil,         'EOR a,x', 'LSR a,x', 'BBR5 r', # 5
-    'RTS s', 'ADC (zp,x)', nil,        nil, 'STZ zp',   'ADC zp',   'ROR zp',   'RMB6 zp', 'PLA s', 'ADC #',   'ROR A', nil,     'JMP (a)',   'ADC a',   'ROR a',   'BBR6 r', # 6
-    'BVS r', 'ADC (zp),y', 'ADC (zp)', nil, 'STZ zp,x', 'ADC zp,x', 'ROR zp,x', 'RMB7 zp', 'SEI i', 'ADC a,y', 'PLY s', nil,     'JMP (a,x)', 'ADC a,x', 'ROR a,x', 'BBR7 r', # 7
-    'BRA r', 'STA (zp,x)', nil,        nil, 'STY zp',   'STA zp',   'STX zp',   'SMB0 zp', 'DEY i', 'BIT #',   'TXA i', nil,     'STY a',     'STA a',   'STX a',   'BBS0 r', # 8
-    'BCC r', 'STA (zp),y', 'STA (zp)', nil, 'STY zp,x', 'STA zp,x', 'STX zp,y', 'SMB1 zp', 'TYA i', 'STA a,y', 'TXS i', nil,     'STZ a',     'STA a,x', 'STZ a,x', 'BBS1 r', # 9
-    'LDY #', 'LDA (zp,x)', 'LDX #',    nil, 'zp LDY',   'LDA zp',   'LDX zp',   'SMB2 zp', 'TAY i', 'LDA #',   'TAX i', nil,     'LDY A',     'LDA a',   'LDX a',   'BBS2 r', # A
-    'BCS r', 'LDA (zp),y', 'LDA (zp)', nil, 'LDY zp,x', 'LDA zp,x', 'LDX zp,y', 'SMB3 zp', 'CLV i', 'LDA A,y', 'TSX i', nil,     'LDY a,x',   'LDA a,x', 'LDX a,y', 'BBS3 r', # B
-    'CPY #', 'CMP (zp,x)', nil,        nil, 'zp CPY',   'CMP zp',   'DEC zp',   'SMB4 zp', 'INY i', 'CMP #',   'DEX i', 'WAI I', 'CPY a',     'CMP a',   'DEC a',   'BBS4 r', # C
-    'BNE r', 'CMP (zp),y', 'CMP (zp)', nil, nil,        'CMP zp,x', 'DEC zp,x', 'SMB5 zp', 'CLD i', 'CMP a,y', 'PHX s', 'STP I', nil,         'CMP a,x', 'DEC a,x', 'BBS5 r', # D
-    'CPX #', 'SBC (zp,x)', nil,        nil, 'CPX zp',   'SBC zp',   'INC zp',   'SMB6 zp', 'INX i', 'SBC #',   'NOP i', nil,     'CPX a',     'SBC a',   'INC a',   'BBS6 r', # E
-    'BEQ r', 'SBC (zp),y', 'SBC (zp)', nil, nil,        'SBC zp,x', 'INC zp,x', 'SMB7 zp', 'SED i', 'SBC a,y', 'PLX s', nil,     nil,         'SBC a,x', 'INC a,x', 'BBS7 r', # F
-  ]
 
   # Registers
   # - Accumulator
@@ -281,8 +173,20 @@ class CPU65c02
 
   # ==== Instructions ====
 
-  # Add with carry
-  def adc(mode) # N V Z C
+  # ADd memory to accumulator with Carry
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N, V,  ,  ,  ,  , Z, C
+  def adc(mode)
+    # 61: (zp,x), Zero Page Indexed Indirect
+    # 65: zp, Zero Page
+    # 69: #, Immediate
+    # 6d: a, Absolute
+    # 71: (zp),y, Zero Page Indirect Indexed with Y
+    # 72: (zp), Zero Page Indirect
+    # 75: zp,x, Zero Page Indexed with X
+    # 79: a,y, Absolute Indexed with Y
+    # 7d: a,x, Absolute Indexed with X
     value = operand(mode)
     flag_set P_NEGATIVE, (@a + value)[7] == 1
     flag_set P_OVERFLOW, (@a + value)[7] == 1 && @a[7] == 1 && value[7] == 1
@@ -291,116 +195,259 @@ class CPU65c02
     @a = (@a + value) & 0xFF
   end
 
-  # And accumulator with memory
-  def and(mode) # N Z
+  # "AND" memory with accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
+  def and(mode)
+    # 21: (zp,x), Zero Page Indexed Indirect
+    # 25: zp, Zero Page
+    # 29: #, Immediate
+    # 2d: a, Absolute
+    # 31: (zp),y, Zero Page Indirect Indexed with Y
+    # 32: (zp), Zero Page Indirect
+    # 35: zp,x, Zero Page Indexed with X
+    # 39: a,y, Absolute Indexed with Y
+    # 3d: a,x, Absolute Indexed with X
     @a &= operand(mode)
+    flag_set P_NEGATIVE, @a[7] == 1
+    flag_set P_ZERO,     @a.zero?
   end
 
-  # Shift left one bit
-  def asl(mode) # N Z C
-    if mode == 'Implied'
+  # Arithmetic Shift one bit Left, memory or accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
+  def asl(mode)
+    # 06: zp, Zero Page
+    # 0a: A, Accumulator
+    # 0e: a, Absolute
+    # 16: zp,x, Zero Page Indexed with X
+    # 1e: a,x, Absolute Indexed with X
+    if mode == 'i' # Implied
       @a <<= 1
-      flag_set(P_CARRY, @a[8] == 1)
+      flag_set P_CARRY,     @a[8] == 1
+      flag_set P_ZERO,      @a.zero?
+      flag_set P_NEGATIVE,  @a[7] == 1
       @a &= 0xF
     else
       address = operand(mode)
       memory = read(address)
       memory <<= 1
-      flag_set(P_CARRY, memory[8] == 1)
+      flag_set(P_CARRY,     memory[8] == 1)
+      flag_set P_ZERO,      memory.zero?
+      flag_set P_NEGATIVE,  memory[7] == 1
       write(memory, to: address)
     end
   end
 
-  # Branch bit reset
-  def bbr(mode)
-    # TODO 0-7
+  (0..7).each do |bit|
+    define_method(:"bbr#{bit}") do |mode|
+      bbr(bit, mode)
+    end
   end
 
-  # Branch bit set
-  def bbs(mode)
-    # TODO : 0-7
+  # Branch on Bit Reset
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
+  def bbr(bit, mode)
+    # 0f: r, Program Counter Relative
+    # 1f: r, Program Counter Relative
+    # 2f: r, Program Counter Relative
+    # 3f: r, Program Counter Relative
+    # 4f: r, Program Counter Relative
+    # 5f: r, Program Counter Relative
+    # 6f: r, Program Counter Relative
+    # 7f: r, Program Counter Relative
+    # TODO
   end
 
-  # Branch carry clear
+  (0..7).each do |bit|
+    define_method(:"bbs#{bit}") do |mode|
+      bbs(bit, mode)
+    end
+  end
+
+  # Branch of Bit Set
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
+  def bbs(bit, mode)
+    # 8f: r, Program Counter Relative
+    # 9f: r, Program Counter Relative
+    # af: r, Program Counter Relative
+    # bf: r, Program Counter Relative
+    # cf: r, Program Counter Relative
+    # df: r, Program Counter Relative
+    # ef: r, Program Counter Relative
+    # ff: r, Program Counter Relative
+    # TODO
+  end
+
+  # Branch on Carry Clear (Pc=0)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bcc(mode)
+    # 90: r, Program Counter Relative
     @pc = addr unless flag?(P_CARRY)
   end
 
-  # Branch carry set
+  # Branch on Carry Set (Pc=1)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bcs(mode)
+    # b0: r, Program Counter Relative
     @pc = operand(mode) if flag?(P_CARRY)
   end
 
-  # Branch if equal
+  # Branch if EQual (Pz=1)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def beq(mode)
+    # f0: r, Program Counter Relative
     @pc = operand(mode) if flag?(P_ZERO)
   end
 
-  # Bit test
-  def bit(mode) # N:M7 V:M6 Z
+  # BIt Test
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #   m7,m6,  ,  ,  ,  , Z,
+  def bit(mode)
+    # 24: zp, Zero Page
+    # 2c: a, Absolute
+    # 34: zp,x, Zero Page Indexed with X
+    # 3c: a,x, Absolute Indexed with X
+    # 89: #, Immediate
     value = operand(mode)
     value ^= @a
     # Does not affect the NV flags
     # This is the only instruction with addressing dependent flags
-    if mode != "Immediate"
+    if mode != '#' # Immediate
       flag_set P_NEGATIVE, value[7] == 1
       flag_set P_OVERFLOW, value[6] == 1 # TODO: check if overflow 2's compliment correctly?
     end
     flag_set P_ZERO,     value & @a == 0
   end
 
-  # Branch on result minus
+  # Branch if result MInus (Pn=1)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bmi(mode)
+    # 30: r, Program Counter Relative
     @pc = operand(mode) if flag?(P_NEGATIVE)
   end
 
-  # Branch on result not zero
+  # Branch if Not Equal (Pz=0)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bne(mode)
+    # d0: r, Program Counter Relative
     @pc = operand(mode) unless flag?(P_ZERO)
   end
 
-  # Branch on result plus
+  # Branch if result PLus (Pn=0)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bpl(mode)
+    # 10: r, Program Counter Relative
     @pc = operand(mode) unless flag?(P_NEGATIVE)
   end
 
+  # BRanch Always
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bra(mode)
+    # 80: r, Program Counter Relative
     @pc = operand(mode)
   end
 
-  def brk(mode) # B D I
+  # BReaK instruction
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  , 1, 0, 1,  ,
+  def brk(mode)
+    # 00: s, Stack
     flag_set(P_BRK,          true)
     flag_set(P_DECIMAL_MODE, false)
     flag_set(P_IRQB_DISABLE, true)
   end
 
+  # Branch on oVerflow Clear (Pv=0)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bvc(mode)
+    # 50: r, Program Counter Relative
     @pc = operand(mode) unless flag?(P_OVERFLOW)
   end
 
+  # Branch on oVerflow Set (Pv=1)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def bvs(mode)
+    # 70: r, Program Counter Relative
     @pc = operand(mode) if flag?(P_OVERFLOW)
   end
 
+  # CLear Cary flag
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  , 0
   def clc(mode)
+    # 18: i, Implied
     flag_set(P_CARRY, false)
   end
 
+  # CLear Decimal mode
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  , 0,  ,  ,
   def cld(mode)
+    # d8: i, Implied
     flag_set(P_DECIMAL_MODE, false)
   end
 
+  # CLear Interrupt disable bit
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  , 0,  ,
   def cli(mode)
+    # 58: i, Implied
     flag_set(P_IRQB_DISABLE, false)
   end
 
+  # CLear oVerflow flag
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     , 0,  ,  ,  ,  ,  ,
   def clv(mode)
+    # b8: i, Implied
     flag_set(P_OVERFLOW, false)
   end
 
-  # Compare memory and accumulator
-  # flags affected: N Z C
+  # CoMPare memory and accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
   def cmp(mode)
+    # c1: (zp,x), Zero Page Indexed Indirect
+    # c5: zp, Zero Page
+    # c9: #, Immediate
+    # cd: a, Absolute
+    # d1: (zp),y, Zero Page Indirect Indexed with Y
+    # d2: (zp), Zero Page Indirect
+    # d5: zp,x, Zero Page Indexed with X
+    # d9: a,y, Absolute Indexed with Y
+    # dd: a,x, Absolute Indexed with X
     value = operand(mode)
     result = @a - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
@@ -408,7 +455,14 @@ class CPU65c02
     flag_set P_CARRY,    result[8]
   end
 
+  # ComPare memory and X register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
   def cpx(mode)
+    # e0: #, Immediate
+    # e4: zp, Zero Page
+    # ec: a, Absolute
     value = operand(mode)
     result = @x - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
@@ -416,7 +470,14 @@ class CPU65c02
     flag_set P_CARRY,    result[8]
   end
 
+  # ComPare memory and Y register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
   def cpy(mode)
+    # c0: #, Immediate
+    # c4: zp, Zero Page
+    # cc: a, Absolute
     value = operand(mode)
     result = @y - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
@@ -424,31 +485,103 @@ class CPU65c02
     flag_set P_CARRY,    result[8]
   end
 
+  # DECrement memory or accumulate by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def dec(mode)
+    # 3a: A, Accumulator
+    # c6: zp, Zero Page
+    # ce: a, Absolute
+    # d6: zp,x, Zero Page Indexed with X
+    # de: a,x, Absolute Indexed with X
+    value = operand(mode)
+    # TODO
   end
 
+  # DEcrement X by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def dex(mode)
+    # ca: i, Implied
+    # TODO
   end
 
+  # DEcrement Y by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def dey(mode)
+    # 88: i, Implied
+    # TODO
   end
 
+  # "Exclusive OR" memory with accumulate
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def eor(mode)
+    # 41: (zp,x), Zero Page Indexed Indirect
+    # 45: zp, Zero Page
+    # 49: #, Immediate
+    # 4d: a, Absolute
+    # 51: (zp),y, Zero Page Indirect Indexed with Y
+    # 52: (zp), Zero Page Indirect
+    # 55: zp,x, Zero Page Indexed with X
+    # 59: a,y, Absolute Indexed with Y
+    # 5d: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # INCrement memory or accumulate by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def inc(mode)
+    # 1a: A, Accumulator
+    # e6: zp, Zero Page
+    # ee: a, Absolute
+    # f6: zp,x, Zero Page Indexed with X
+    # fe: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # INcrement X register by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def inx(mode)
+    # e8: i, Implied
+    # TODO
   end
 
+  # INcrement Y register by one
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def iny(mode)
+    # c8: i, Implied
+    # TODO
   end
 
+  # JuMP to new location
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def jmp(mode)
+    # 4c: a, Absolute
+    # 6c: (a), Absolute Indirect
+    # 7c: (a,x), Absolute Indexed Indirect
+    # TODO
   end
 
+  # Jump to new location Saving Return (Jump to SubRoutine)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def jsr(mode)
+    # 20: a, Absolute
     write(@p,        to: @s += 1) # Store processor status on stack
     write(@pc & 0xF, to: @s += 1) # Store program counter (low order)
     write(@pc >> 8,  to: @s += 1) # Store PC (High order)
@@ -457,127 +590,438 @@ class CPU65c02
     flag_set P_NEGATIVE, @pc[15] == 1 # TODO: Is this even right??
   end
 
+  # LoaD Accumulator with memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def lda(mode)
+    # a1: (zp,x), Zero Page Indexed Indirect
+    # a5: zp, Zero Page
+    # a9: #, Immediate
+    # ad: a, Absolute
+    # b1: (zp),y, Zero Page Indirect Indexed with Y
+    # b2: (zp), Zero Page Indirect
+    # b5: zp,x, Zero Page Indexed with X
+    # b9: A,y,
+    # bd: a,x, Absolute Indexed with X
     @a = operand(mode) & 0xFF
     flag_set P_ZERO,     @a.zero?
     flag_set P_NEGATIVE, @a[7] == 1
   end
 
+  # LoaD the X register with memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def ldx(mode)
+    # a2: #, Immediate
+    # a6: zp, Zero Page
+    # ae: a, Absolute
+    # b6: zp,y, Zero Page Indexed with Y
+    # be: a,y, Absolute Indexed with Y
     @x = operand(mode) & 0xFF
     flag_set P_ZERO      @x.zero?
     flag_set P_NEGATIVE, @x[7] == 1
   end
 
+  # LoaD the Y register with memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def ldy(mode)
+    # a0: #, Immediate
+    # a4: zp, Zero Page
+    # ac: A, Accumulator
+    # b4: zp,x, Zero Page Indexed with X
+    # bc: a,x, Absolute Indexed with X
     @y = operand(mode) & 0xFF
     flag_set P_ZERO,     @y.zero?
     flag_set P_NEGATIVE, @y[7] == 1
   end
 
+  # Logical Shift one bit Right memory or accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    0,  ,  ,  ,  ,  , Z, C
   def lsr(mode)
+    # 46: zp, Zero Page
+    # 4a: A, Accumulator
+    # 4e: a, Absolute
+    # 56: zp,x, Zero Page Indexed with X
+    # 5e: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # No OPeration
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def nop(mode)
+    # ea: i, Implied
+    # TODO
   end
 
+  # "OR" memory with Accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def ora(mode)
+    # 01: (zp,x), Zero Page Indexed Indirect
+    # 05: zp, Zero Page
+    # 09: #, Immediate
+    # 0d: a, Absolute
+    # 11: (zp),y, Zero Page Indirect Indexed with Y
+    # 12: (zp), Zero Page Indirect
+    # 15: zp,x, Zero Page Indexed with X
+    # 19: a,y, Absolute Indexed with Y
+    # 1d: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # PusH Accumulator on stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def pha(mode)
+    # 48: s, Stack
+    # TODO
   end
 
+  # PusH Processor status on stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def php(mode)
+    # 08: s, Stack
+    # TODO
   end
 
+  # PusH X register on stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def phx(mode)
+    # da: s, Stack
+    # TODO
   end
 
+  # PusH Y register on stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def phy(mode)
+    # 5a: s, Stack
+    # TODO
   end
 
+  # PuLl Accumulator from stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def pla(mode)
+    # 68: s, Stack
+    # TODO
   end
 
+  # PuLl Processor status from stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N, V,  , 1, D, I, Z, C
   def plp(mode)
+    # 28: s, Stack
+    # TODO
   end
 
+  # PuLl X register from stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def plx(mode)
+    # fa: s, Stack
+    # TODO
   end
 
+  # PuLl Y register from stack
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def ply(mode)
+    # 7a: s, Stack
+    # TODO
   end
 
-  def rmb(mode)
+  (0..7).each do |bit|
+    define_method(:"rmb#{bit}") do |mode|
+      rmb(bit, mode)
+    end
   end
 
+  # Reset Memory Bit
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
+  def rmb(bit, mode)
+    # 07: zp, Zero Page
+    # 17: zp, Zero Page
+    # 27: zp, Zero Page
+    # 37: zp, Zero Page
+    # 47: zp, Zero Page
+    # 57: zp, Zero Page
+    # 67: zp, Zero Page
+    # 77: zp, Zero Page
+    # TODO
+  end
+
+  # ROtate one bit Left memory or accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
   def rol(mode)
+    # 26: zp, Zero Page
+    # 2a: A, Accumulator
+    # 2e: a, Absolute
+    # 36: zp,x, Zero Page Indexed with X
+    # 3e: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # ROtate one bit Right memory or accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z, C
   def ror(mode)
+    # 66: zp, Zero Page
+    # 6a: A, Accumulator
+    # 6e: a, Absolute
+    # 76: zp,x, Zero Page Indexed with X
+    # 7e: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # ReTurn from Interrupt
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N, V,  , 1, D, I, Z, C
   def rti(mode)
+    # 40: s, Stack
+    # TODO
   end
 
+  # ReTurn from Subroutine
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def rts(mode)
+    # 60: s, Stack
+    # TODO
   end
 
+  # SuBtract memory from accumulator with borrow (Carry bit)
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N, V,  ,  ,  ,  , Z, C
   def sbc(mode)
+    # e1: (zp,x), Zero Page Indexed Indirect
+    # e5: zp, Zero Page
+    # e9: #, Immediate
+    # ed: a, Absolute
+    # f1: (zp),y, Zero Page Indirect Indexed with Y
+    # f2: (zp), Zero Page Indirect
+    # f5: zp,x, Zero Page Indexed with X
+    # f9: a,y, Absolute Indexed with Y
+    # fd: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # SEt Carry
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  , 1
   def sec(mode)
+    # 38: I,
+    # TODO
   end
 
+  # SEt Decimal mode
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  , 1,  ,  ,
   def sed(mode)
+    # f8: i, Implied
+    # TODO
   end
 
+  # SEt Interrupt disable status
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  , 1,  ,
   def sei(mode)
+    # 78: i, Implied
+    # TODO
   end
 
-  def smb(mode)
+  (0..7).each do |bit|
+    define_method(:"smb#{bit}") do |mode|
+      smb(bit, mode)
+    end
   end
 
+  # Set Memory Bit
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
+  def smb(bit, mode)
+    # 87: zp, Zero Page
+    # 97: zp, Zero Page
+    # a7: zp, Zero Page
+    # b7: zp, Zero Page
+    # c7: zp, Zero Page
+    # d7: zp, Zero Page
+    # e7: zp, Zero Page
+    # f7: zp, Zero Page
+    # TODO
+  end
+
+  # STore Accumulator in memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def sta(mode)
+    # 81: (zp,x), Zero Page Indexed Indirect
+    # 85: zp, Zero Page
+    # 8d: a, Absolute
+    # 91: (zp),y, Zero Page Indirect Indexed with Y
+    # 92: (zp), Zero Page Indirect
+    # 95: zp,x, Zero Page Indexed with X
+    # 99: a,y, Absolute Indexed with Y
+    # 9d: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # SToP mode
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def stp(mode)
+    # db: I,
+    # TODO
   end
 
+  # STore the X register in memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def stx(mode)
+    # 86: zp, Zero Page
+    # 8e: a, Absolute
+    # 96: zp,y, Zero Page Indexed with Y
+    # TODO
   end
 
+  # STore the Y register in memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def sty(mode)
+    # 84: zp, Zero Page
+    # 8c: a, Absolute
+    # 94: zp,x, Zero Page Indexed with X
+    # TODO
   end
 
+  # STore Zero in memory
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def stz(mode)
+    # 64: zp, Zero Page
+    # 74: zp,x, Zero Page Indexed with X
+    # 9c: a, Absolute
+    # 9e: a,x, Absolute Indexed with X
+    # TODO
   end
 
+  # Transfer the Accumulator to the X register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def tax(mode)
+    # aa: i, Implied
+    # TODO
   end
 
+  # Transfer the Accumulator to the Y register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def tay(mode)
+    # a8: i, Implied
+    # TODO
   end
 
+  # Test and Reset memory Bit
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  , Z,
   def trb(mode)
+    # 14: zp, Zero Page
+    # 1c: a, Absolute
+    # TODO
   end
 
+  # Test and Set memory Bit
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  , Z,
   def tsb(mode)
+    # 04: zp, Zero Page
+    # 0c: a, Absolute
+    # TODO
   end
 
+  # Transfer the Stack pointer to the X register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def tsx(mode)
+    # ba: i, Implied
+    # TODO
   end
 
+  # Transfer the X register to the Accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def txa(mode)
+    # 8a: i, Implied
+    # TODO
   end
 
+  # Transfer the X register to the Stack pointer register
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def txs(mode)
+    # 9a: i, Implied
+    # TODO
   end
 
+  # Transfer Y register to the Accumulator
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #    N,  ,  ,  ,  ,  , Z,
   def tya(mode)
+    # 98: i, Implied
+    # TODO
   end
 
+  # WAit for Interrupt
+  # Status Register:
+  #   7N 6V 51 41 3D 2I 1Z 0C
+  #     ,  ,  ,  ,  ,  ,  ,
   def wai(mode)
+    # cb: I,
+    # TODO
   end
 
   # ==== P Flags ====
