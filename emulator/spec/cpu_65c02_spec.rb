@@ -622,9 +622,12 @@ RSpec.describe CPU65c02 do
           # cmp #42 - c9 2a
           rom = make_rom(%w[a9 2a c9 2a])
           clock.on_tick { rom.update }
-          cpu.address = 0x8000 # Set address to our rom location
+          cpu.address = 0x7FFF # Set address to our rom location
           cpu.step
           expect(cpu.a).to eq(42)
+          expect(cpu.pc).to eq(0x8001)
+          cpu.step
+          expect(cpu.flag?(CPU65c02::P_ZERO)).to eq(true)
         end
       end
 
@@ -869,7 +872,7 @@ RSpec.describe CPU65c02 do
         it "loads the a register" do
           rom = make_rom(%w[a9 42]) # lda #$42
           clock.on_tick { rom.update }
-          cpu.address = 0x8000 # ROM
+          cpu.address = 0x7FFF # ROM
           cpu.step
           expect(cpu.a).to eq(0x42)
         end

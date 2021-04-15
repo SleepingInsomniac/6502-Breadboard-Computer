@@ -49,7 +49,7 @@ class CPU65c02
 
   def step
     # Get the instruction from the current address on the databus
-    mnemonic, mode = mnemonic(read(@pc))
+    mnemonic, mode = mnemonic(read_next)
     # Call the instruction with the correct addressing mode
     send(mnemonic.downcase, mode)
   end
