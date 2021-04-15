@@ -62,6 +62,12 @@ class CPU65c02
     @data_bus.read # Read data bus
   end
 
+  def read_16(address)
+    low  = read(address)      # Read low order byte
+    high = read(address + 1)  # Read high order byte
+    (high << 8) | low         # Combine (little endian) to 2 bytes
+  end
+
   def write(data, to:)
     @clock.tick do
       @rwb.write(0) # Set write mode
@@ -77,99 +83,65 @@ class CPU65c02
     read(@pc)
   end
 
+  def read_next_16
+    low  = read_next  # Read low order byte
+    high = read_next  # Read high order byte
+    (high << 8) | low # Combine (little endian) to 2 bytes
+  end
+
   # Decode the instruction and addressing mode of the given byte
   def mnemonic(opcode)
     _mnemonic, _mode = OP_CODES[opcode].split(' ')
   end
 
+  # Resolve the value for a given addressing mode
+  def argument(mode)
+    case mode
+    when 'a'        then read(operand(mode))              # Absolute
+    when '(a,x)'    then operand(mode) + @x               # Absolute Indexed Indirect
+    when 'a,x'      then read(operand(mode) + @x)         # Absolute Indexed with X
+    when 'a,y'      then read(operand(mode) + @y)         # Absolute Indexed with Y
+    when '(a)'      then read(read(operand))              # Absolute Indirect
+    when 'A'        then @a                               # Accumulator
+    when '#'        then operand(mode)                    # Immediate
+    when 'i'        then nil                              # Implied
+    when 'r'        then @pc + operand(mode)              # Program Counter Relative
+    when 's'        then @s                               # Stack
+    when 'zp'       then read(operand(mode))              # Zero Page
+    when '(zp,x)'   then read(read(operand(mode)) + @x)   # Zero Page Indexed Indirect
+    when 'zp,x'     then read(operand(mode) + @x)         # Zero Page Indexed with X
+    when 'zp,y'     then read(operand(mode) + @y)         # Zero Page Indexed with Y
+    when '(zp)'     then read(operand(mode))              # Zero Page Indirect
+    when '(zp),y'   then read(operand(mode)) + @y         # Zero Page Indirect Indexed with Y
+    end
+  end
+
   # Get the operand of the current instruction based on addressing mode
   def operand(mode)
-    self.send("addr_" + ADDRESSING_MODES[mode].downcase.gsub(/\s/, '_'))
-  end
-
-  # ==== Addressing Modes ====
-
-  # a : 4 cycles (Read-Modify-Write, add 2 cycles)
-  def addr_absolute
-    adl = read_next # Read low order byte
-    adh = read_next # Read high order byte
-    (adh << 8) | adl # Combine to get 16 bit address
-  end
-
-  # (a,x) : 6 cycles
-  def addr_absolute_indexed_indirect
-    adl = read_next
-    adh = read_next # Fetch next two bytes for indirect base address
-    ind_addr = ((adh << 8) | adl) + @x # Combine to get 16 bit address + x reg
-    adl = read(ind_addr)
-    adh = read(ind_addr + 1)
-    ((adh << 8) | adl)
-  end
-
-  # a,x
-  def addr_absolute_indexed_with_x
-    adl = read_next
-    adh = read_next
-    ((adh << 8) | adl) + @x
-  end
-
-  def addr_absolute_indexed_with_y
-    adl = read_next; adh = read_next
-    ((adh << 8) | adl) + @y
-  end
-
-  def addr_absolute_indirect
-    adl = read_next; adh = read_next
-    ind_address = ((adh << 8) | adl)
-    adl = read(ind_address)
-    adh = read(ind_address + 1)
-    ((adh << 8) | adl)
-  end
-
-  def addr_accumulator
-    @a
-  end
-
-  def addr_immediate
-    read_next # return the next byte
-  end
-
-  def addr_implied
-    # Nothing to do here.
-  end
-
-  def addr_program_counter_relative
-    offset = read_next
-    @pc + offset
-  end
-
-  def addr_stack
-    @s
-  end
-
-  def addr_zero_page
-    read_next
-  end
-
-  def addr_zero_page_indexed_indirect
-    adl = read_next
-    read(adl) + @x
-  end
-
-  def addr_zero_page_indexed_with_x
-    read_next + @x
-  end
-
-  def addr_zero_page_indexed_with_y
-    read_next + @y
-  end
-
-  def addr_zero_page_indirect
-    read_next
-  end
-
-  def addr_zero_page_indirect_indexed_with_y
-    read_next + @y
+    case mode
+    when *%w[a (a,x) a,x a,y (a)]
+      # Absolute
+      # Absolute Indexed Indirect
+      # Absolute Indexed with X
+      # Absolute Indexed with Y
+      # Absolute Indirect
+      read_next_16 # 2 bytes
+    when *%w[A i s]
+      # Accumulator
+      # Implied
+      # Stack
+      nil # 0 bytes
+    when *%w[# r zp (zp,x) zp,x zp,y (zp) (zp),y]
+      # Immediate
+      # Program Counter Relative
+      # Zero Page
+      # Zero Page Indexed Indirect
+      # Zero Page Indexed with X
+      # Zero Page Indexed with Y
+      # Zero Page Indirect
+      # Zero Page Indirect Indexed with Y
+      read_next # 1 byte
+    end
   end
 
   # ==== Instructions ====
@@ -188,7 +160,7 @@ class CPU65c02
     # 75: zp,x, Zero Page Indexed with X
     # 79: a,y, Absolute Indexed with Y
     # 7d: a,x, Absolute Indexed with X
-    value = operand(mode)
+    value = argument(mode)
     flag_set P_NEGATIVE, (@a + value)[7] == 1
     flag_set P_OVERFLOW, (@a + value)[7] == 1 && @a[7] == 1 && value[7] == 1
     flag_set P_ZERO,     (@a + value) & 0xFF == 0
@@ -210,7 +182,7 @@ class CPU65c02
     # 35: zp,x, Zero Page Indexed with X
     # 39: a,y, Absolute Indexed with Y
     # 3d: a,x, Absolute Indexed with X
-    @a &= operand(mode)
+    @a &= argument(mode)
     flag_set P_NEGATIVE, @a[7] == 1
     flag_set P_ZERO,     @a.zero?
   end
@@ -232,7 +204,7 @@ class CPU65c02
       flag_set P_NEGATIVE,  @a[7] == 1
       @a &= 0xF
     else
-      address = operand(mode)
+      address = argument(mode)
       memory = read(address)
       memory <<= 1
       flag_set(P_CARRY,     memory[8] == 1)
@@ -301,7 +273,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bcs(mode)
     # b0: r, Program Counter Relative
-    @pc = operand(mode) if flag?(P_CARRY)
+    @pc = argument(mode) if flag?(P_CARRY)
   end
 
   # Branch if EQual (Pz=1)
@@ -310,7 +282,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def beq(mode)
     # f0: r, Program Counter Relative
-    @pc = operand(mode) if flag?(P_ZERO)
+    @pc = argument(mode) if flag?(P_ZERO)
   end
 
   # BIt Test
@@ -323,7 +295,7 @@ class CPU65c02
     # 34: zp,x, Zero Page Indexed with X
     # 3c: a,x, Absolute Indexed with X
     # 89: #, Immediate
-    value = operand(mode)
+    value = argument(mode)
     value ^= @a
     # Does not affect the NV flags
     # This is the only instruction with addressing dependent flags
@@ -340,7 +312,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bmi(mode)
     # 30: r, Program Counter Relative
-    @pc = operand(mode) if flag?(P_NEGATIVE)
+    @pc = argument(mode) if flag?(P_NEGATIVE)
   end
 
   # Branch if Not Equal (Pz=0)
@@ -349,7 +321,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bne(mode)
     # d0: r, Program Counter Relative
-    @pc = operand(mode) unless flag?(P_ZERO)
+    @pc = argument(mode) unless flag?(P_ZERO)
   end
 
   # Branch if result PLus (Pn=0)
@@ -358,7 +330,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bpl(mode)
     # 10: r, Program Counter Relative
-    @pc = operand(mode) unless flag?(P_NEGATIVE)
+    @pc = argument(mode) unless flag?(P_NEGATIVE)
   end
 
   # BRanch Always
@@ -367,7 +339,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bra(mode)
     # 80: r, Program Counter Relative
-    @pc = operand(mode)
+    @pc = argument(mode)
   end
 
   # BReaK instruction
@@ -387,7 +359,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bvc(mode)
     # 50: r, Program Counter Relative
-    @pc = operand(mode) unless flag?(P_OVERFLOW)
+    @pc = argument(mode) unless flag?(P_OVERFLOW)
   end
 
   # Branch on oVerflow Set (Pv=1)
@@ -396,7 +368,7 @@ class CPU65c02
   #     ,  ,  ,  ,  ,  ,  ,
   def bvs(mode)
     # 70: r, Program Counter Relative
-    @pc = operand(mode) if flag?(P_OVERFLOW)
+    @pc = argument(mode) if flag?(P_OVERFLOW)
   end
 
   # CLear Cary flag
@@ -449,7 +421,7 @@ class CPU65c02
     # d5: zp,x, Zero Page Indexed with X
     # d9: a,y, Absolute Indexed with Y
     # dd: a,x, Absolute Indexed with X
-    value = operand(mode)
+    value = argument(mode)
     result = @a - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
     flag_set P_ZERO,     (result & 0xFF).zero?
@@ -464,7 +436,7 @@ class CPU65c02
     # e0: #, Immediate
     # e4: zp, Zero Page
     # ec: a, Absolute
-    value = operand(mode)
+    value = argument(mode)
     result = @x - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
     flag_set P_ZERO,     (result & 0xFF).zero?
@@ -479,7 +451,7 @@ class CPU65c02
     # c0: #, Immediate
     # c4: zp, Zero Page
     # cc: a, Absolute
-    value = operand(mode)
+    value = argument(mode)
     result = @y - value
     flag_set P_NEGATIVE, result[7] == 1 # Bit 7 indicates sign for two's compliment
     flag_set P_ZERO,     (result & 0xFF).zero?
@@ -496,7 +468,7 @@ class CPU65c02
     # ce: a, Absolute
     # d6: zp,x, Zero Page Indexed with X
     # de: a,x, Absolute Indexed with X
-    value = operand(mode)
+    value = argument(mode)
     # TODO
   end
 
@@ -586,7 +558,7 @@ class CPU65c02
     write(@p,        to: @s += 1) # Store processor status on stack
     write(@pc & 0xF, to: @s += 1) # Store program counter (low order)
     write(@pc >> 8,  to: @s += 1) # Store PC (High order)
-    @pc = operand(mode) # Set program counter
+    @pc = argument(mode) # Set program counter
     flag_set P_ZERO, @pc.zero? # datasheet says these get set?
     flag_set P_NEGATIVE, @pc[15] == 1 # TODO: Is this even right??
   end
@@ -596,16 +568,16 @@ class CPU65c02
   #   7N 6V 51 41 3D 2I 1Z 0C
   #    N,  ,  ,  ,  ,  , Z,
   def lda(mode)
-    # a1: (zp,x), Zero Page Indexed Indirect
-    # a5: zp, Zero Page
-    # a9: #, Immediate
-    # ad: a, Absolute
-    # b1: (zp),y, Zero Page Indirect Indexed with Y
-    # b2: (zp), Zero Page Indirect
-    # b5: zp,x, Zero Page Indexed with X
-    # b9: A,y,
-    # bd: a,x, Absolute Indexed with X
-    @a = operand(mode) & 0xFF
+    # ad: Absolute
+    # bd: Absolute Indexed with X
+    # b9: Absolute Indexed with Y
+    # a9: Immediate
+    # a5: Zero Page
+    # a1: Zero Page Indexed Indirect
+    # b1: Zero Page Indirect Indexed with Y
+    # b2: Zero Page Indirect
+    # b5: Zero Page Indexed with X
+    @a = argument(mode)
     flag_set P_ZERO,     @a.zero?
     flag_set P_NEGATIVE, @a[7] == 1
   end
@@ -620,7 +592,7 @@ class CPU65c02
     # ae: a, Absolute
     # b6: zp,y, Zero Page Indexed with Y
     # be: a,y, Absolute Indexed with Y
-    @x = operand(mode) & 0xFF
+    @x = argument(mode) & 0xFF
     flag_set P_ZERO      @x.zero?
     flag_set P_NEGATIVE, @x[7] == 1
   end
@@ -635,7 +607,7 @@ class CPU65c02
     # ac: A, Accumulator
     # b4: zp,x, Zero Page Indexed with X
     # bc: a,x, Absolute Indexed with X
-    @y = operand(mode) & 0xFF
+    @y = argument(mode) & 0xFF
     flag_set P_ZERO,     @y.zero?
     flag_set P_NEGATIVE, @y[7] == 1
   end

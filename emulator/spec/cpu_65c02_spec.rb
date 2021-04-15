@@ -6,6 +6,7 @@ require_relative "../lib/clock"
 require 'stringio'
 require 'tempfile'
 require 'digest/sha1'
+require 'shellwords'
 
 RSpec.describe CPU65c02 do
   let(:clock) { Clock.new }
@@ -43,14 +44,30 @@ RSpec.describe CPU65c02 do
     )
   end
 
-  def assemble_rom(asm)
-    data = assemble(asm)
+  def assemble_rom(asm, file_name = nil)
+    data = assemble(asm, file_name)
     Memory.new(
       **bus_connections,
       addresses: 0x8000..(0x8000 + data.length),
       file: StringIO.new(data),
       read_only: true
     )
+  end
+
+  def assemble(prog, file_name = nil)
+    file_name ||= Digest::SHA1.hexdigest(prog)
+    fixture = "spec/fixtures/#{file_name}.hex"
+    unless File.exist?(fixture)
+      file = Tempfile.new('spec.s')
+      file.write(prog)
+      file.close
+      `vasm6502_oldstyle -Fbin -dotdir #{file.path} -o #{Shellwords.shellescape(fixture)}`
+    end
+    File.read(fixture)
+  end
+
+  def mem_set(memory, map)
+    map.each { |(addr, val)| memor.write(addr, val) }
   end
 
   describe "#mnemonic" do
@@ -102,38 +119,44 @@ RSpec.describe CPU65c02 do
       rom = make_rom(%w[7C 00 80 05 80])
       clock.on_tick { rom.update }
       cpu.x = 0x03
-      cpu.address = 0x8000
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('JMP')
       expect(mode).to eq('(a,x)')
-      expect(cpu.operand(mode)).to eq(0x8005)
+      cpu.address = 0x8000
+      expect(cpu.argument(mode)).to eq(0x8003)
       # expect(clock.cycles).to eq(6) # TODO
     end
   end
 
-  describe "Absolute Indexed with X Addressing" do
+  describe "'Absolute Indexed with X' a,x Addressing" do
     it "returns 2 bytes ofset by x" do
-      rom = make_rom(%w[BC 00 80])
+      rom = assemble_rom(<<~ROM, "'Absolute Indexed with X' a,x Addressing")
+          .org $8000
+        main:
+          ldy $8000, x
+          .org $8003
+          .byte $42
+      ROM
       clock.on_tick { rom.update }
       cpu.x = 0x03
       cpu.address = 0x8000
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('LDY')
       expect(mode).to eq('a,x')
-      expect(cpu.operand(mode)).to eq(0x8003)
+      expect("%02x" % cpu.argument(mode)).to eq('42')
     end
   end
 
   describe "Absolute Indexed with Y Addressing" do
     it "returns 2 bytes ofset by y" do
-      rom = make_rom(%w[BE 00 80])
+      rom = assemble_rom("  .org $8000\n  ldx $8000,y\n  .org $8003\n  .byte $42")
       clock.on_tick { rom.update }
       cpu.y = 0x03
       cpu.address = 0x8000
       instruction, mode = cpu.mnemonic(cpu.read(0x8000))
       expect(instruction).to eq('LDX')
       expect(mode).to eq('a,y')
-      expect(cpu.operand(mode)).to eq(0x8003)
+      expect(cpu.argument(mode)).to eq(0x42)
     end
   end
 
@@ -168,7 +191,7 @@ RSpec.describe CPU65c02 do
       $8002: STA a $6002
       $8005: LDA # $55
       $8007: STA a $6000
-      $800a: ROR A $0
+      $800a: ROR A
       $800b: JMP a $8007
     PROG
   end
@@ -176,18 +199,6 @@ RSpec.describe CPU65c02 do
   # ==========================
   # = OP Code / Instructions =
   # ==========================
-
-  def assemble(prog)
-    digest = Digest::SHA1.hexdigest(prog)
-    fixture = "spec/fixtures/#{digest}"
-    unless File.exist?(fixture)
-      file = Tempfile.new('spec.s')
-      file.write(prog)
-      file.close
-      `vasm6502_oldstyle -Fbin -dotdir #{file.path} -o #{fixture}`
-    end
-    File.read(fixture)
-  end
 
   describe "CPU Instructions" do
     describe "ADC" do
@@ -885,28 +896,56 @@ RSpec.describe CPU65c02 do
 
       context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
         # op code: a1
-        it "loads a with the correct value" do
-          rom = assemble_rom(<<~ASM)
+        let!(:rom) do
+          assemble_rom(<<~ASM, 'lda (zp,x)')
               .org 8000
             main:
-              lda (0,x)
-              sta $6000
+              lda (1,x)
           ASM
+        end
+
+        before(:each) do
           clock.on_tick do
             rom.update
             memory.update
           end
+        end
+
+        it "loads a with the correct value" do
           cpu.address = 0x7FFF # ROM
           cpu.x = 0x05
-          memory.write(0x0000, 0x03)
+          memory.write(0x0001, 0x03) # store $03 in $01
+          memory.write(0x0008, 0x42) # store $42 in $08
           cpu.step
-          # $0000 : 03 + 05 = 08
-          expect(cpu.a).to eq(0x08)
+          # $0001 : 03 + 05 = $0008
+          # $0008 : 42
+          expect(cpu.a).to eq(0x42)
         end
       end
 
       context "with addressing mode: 'zp, Zero Page'" do
         # op code: a5
+        let(:rom) do
+          assemble_rom(<<~ASM, 'lda zp')
+              .org 8000
+            main:
+              lda $10
+          ASM
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        it "loads with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x0010, 0x42) # Put 0x42 in memory address $10
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
       end
 
       context "with addressing mode: '#, Immediate'" do
@@ -922,22 +961,116 @@ RSpec.describe CPU65c02 do
 
       context "with addressing mode: 'a, Absolute'" do
         # op code: ad
+        let(:rom) do
+          assemble_rom(<<~ASM, 'lda a')
+              .org 8000
+            main:
+              lda $4000
+          ASM
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        it "loads a with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x4000, 0x42)
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
       end
 
       context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
         # op code: b1
+        let(:rom) do
+          assemble_rom("  lda ($01), y")
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        it "loads a with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x01, 0x40)
+          cpu.y = 2
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
       end
 
       context "with addressing mode: '(zp), Zero Page Indirect'" do
         # op code: b2
+        let(:rom) do
+          make_rom(%w[b2 01])
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        it "loads a with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x01, 0x42)
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
       end
 
       context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
         # op code: b5
+        let(:rom) do
+          make_rom(%w[b5 01])
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        # lda $01,x ; $01 + x = $02 -> $42
+        it "loads a with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x02, 0x42)
+          cpu.x = 1
+          cpu.step
+          expect(cpu.a).to eq(0x42)
+        end
       end
 
-      context "with addressing mode: 'A,y, '" do
+      context "with addressing mode: 'a,y'" do
         # op code: b9
+        let(:rom) do
+          make_rom(%w[b9 10 40])
+        end
+
+        before(:each) do
+          clock.on_tick do
+            rom.update
+            memory.update
+          end
+        end
+
+        # lda $8010,y ; $4010 + y = $4011 -> $42
+        it "loads a with the correct value" do
+          cpu.address = 0x7FFF # ROM
+          memory.write(0x4011, 0x42)
+          cpu.y = 1
+          cpu.step
+          expect("%02x" % cpu.a).to eq('42')
+        end
       end
 
       context "with addressing mode: 'a,x, Absolute Indexed with X'" do
