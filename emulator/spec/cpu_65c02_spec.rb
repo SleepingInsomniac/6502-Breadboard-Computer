@@ -161,30 +161,462 @@ RSpec.describe CPU65c02 do
     PROG
   end
 
+  # ==========================
+  # = OP Code / Instructions =
+  # ==========================
+
   describe "CPU Instructions" do
-    describe 'ADC'
-    describe 'AND'
-    describe 'ASL'
-    describe 'BBR'
-    describe 'BBS'
-    describe 'BCC'
-    describe 'BCS'
-    describe 'BEQ'
-    describe 'BIT'
-    describe 'BMI'
-    describe 'BNE'
-    describe 'BPL'
-    describe 'BRA'
-    describe 'BRK'
-    describe 'BVC'
-    describe 'BVS'
-    describe 'CLC'
-    describe 'CLD'
-    describe 'CLI'
-    describe 'CLV'
+    describe "ADC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N, V,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: 61
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 65
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: 69
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 6d
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: 71
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: 72
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 75
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: 79
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 7d
+      end
+    end
+
+    describe "AND" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: 21
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 25
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: 29
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 2d
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: 31
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: 32
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 35
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: 39
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 3d
+      end
+    end
+
+    describe "ASL" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 06
+      end
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 0a
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 0e
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 16
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 1e
+      end
+    end
+
+    describe "BBR0" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 0f
+      end
+    end
+
+    describe "BBR1" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 1f
+      end
+    end
+
+    describe "BBR2" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 2f
+      end
+    end
+
+    describe "BBR3" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 3f
+      end
+    end
+
+    describe "BBR4" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 4f
+      end
+    end
+
+    describe "BBR5" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 5f
+      end
+    end
+
+    describe "BBR6" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 6f
+      end
+    end
+
+    describe "BBR7" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 7f
+      end
+    end
+
+    describe "BBS0" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 8f
+      end
+    end
+
+    describe "BBS1" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 9f
+      end
+    end
+
+    describe "BBS2" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: af
+      end
+    end
+
+    describe "BBS3" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: bf
+      end
+    end
+
+    describe "BBS4" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: cf
+      end
+    end
+
+    describe "BBS5" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: df
+      end
+    end
+
+    describe "BBS6" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: ef
+      end
+    end
+
+    describe "BBS7" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: ff
+      end
+    end
+
+    describe "BCC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 90
+      end
+    end
+
+    describe "BCS" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: b0
+      end
+    end
+
+    describe "BEQ" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: f0
+      end
+    end
+
+    describe "BIT" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #   m7,m6,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 24
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 2c
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 34
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 3c
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: 89
+      end
+    end
+
+    describe "BMI" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 30
+      end
+    end
+
+    describe "BNE" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: d0
+      end
+    end
+
+    describe "BPL" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 10
+      end
+    end
+
+    describe "BRA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 80
+      end
+    end
+
+    describe "BRK" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  , 1, 0, 1,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 00
+      end
+    end
+
+    describe "BVC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 50
+      end
+    end
+
+    describe "BVS" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'r, Program Counter Relative'" do
+        # op code: 70
+      end
+    end
+
+    describe "CLC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  , 0
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 18
+      end
+    end
+
+    describe "CLD" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  , 0,  ,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: d8
+      end
+    end
+
+    describe "CLI" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  , 0,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 58
+      end
+    end
+
+    describe "CLV" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     , 0,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: b8
+      end
+    end
 
     describe "CMP" do
-      context "with immediate addressing" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: c1
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: c5
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: c9
         it "sets the zero flag when memory matches accumulator" do
           # lda #42 - a9 2a
           # cmp #42 - c9 2a
@@ -195,22 +627,245 @@ RSpec.describe CPU65c02 do
           expect(cpu.a).to eq(42)
         end
       end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: cd
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: d1
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: d2
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: d5
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: d9
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: dd
+      end
     end
 
-    describe 'CPX'
-    describe 'CPY'
-    describe 'DEC'
-    describe 'DEX'
-    describe 'DEY'
-    describe 'EOR'
-    describe 'INC'
-    describe 'INX'
-    describe 'INY'
-    describe 'JMP'
-    describe 'JSR'
+    describe "CPX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: e0
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: e4
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ec
+      end
+    end
+
+    describe "CPY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: c0
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: c4
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: cc
+      end
+    end
+
+    describe "DEC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 3a
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: c6
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ce
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: d6
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: de
+      end
+    end
+
+    describe "DEX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: ca
+      end
+    end
+
+    describe "DEY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 88
+      end
+    end
+
+    describe "EOR" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: 41
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 45
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: 49
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 4d
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: 51
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: 52
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 55
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: 59
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 5d
+      end
+    end
+
+    describe "INC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 1a
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: e6
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ee
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: f6
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: fe
+      end
+    end
+
+    describe "INX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: e8
+      end
+    end
+
+    describe "INY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: c8
+      end
+    end
+
+    describe "JMP" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 4c
+      end
+
+      context "with addressing mode: '(a), Absolute Indirect'" do
+        # op code: 6c
+      end
+
+      context "with addressing mode: '(a,x), Absolute Indexed Indirect'" do
+        # op code: 7c
+      end
+    end
+
+    describe "JSR" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 20
+      end
+    end
 
     describe "LDA" do
-      context "with immediate addressing" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: a1
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: a5
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: a9
         it "loads the a register" do
           rom = make_rom(%w[a9 42]) # lda #$42
           clock.on_tick { rom.update }
@@ -219,44 +874,748 @@ RSpec.describe CPU65c02 do
           expect(cpu.a).to eq(0x42)
         end
       end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ad
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: b1
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: b2
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: b5
+      end
+
+      context "with addressing mode: 'A,y, '" do
+        # op code: b9
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: bd
+      end
     end
 
-    describe 'LDX'
-    describe 'LDY'
-    describe 'LSR'
-    describe 'NOP'
-    describe 'ORA'
-    describe 'PHA'
-    describe 'PHP'
-    describe 'PHX'
-    describe 'PHY'
-    describe 'PLA'
-    describe 'PLP'
-    describe 'PLX'
-    describe 'PLY'
-    describe 'RMB'
-    describe 'ROL'
-    describe 'ROR'
-    describe 'RTI'
-    describe 'RTS'
-    describe 'SBC'
-    describe 'SEC'
-    describe 'SED'
-    describe 'SEI'
-    describe 'SMB'
-    describe 'STA'
-    describe 'STP'
-    describe 'STX'
-    describe 'STY'
-    describe 'STZ'
-    describe 'TAX'
-    describe 'TAY'
-    describe 'TRB'
-    describe 'TSB'
-    describe 'TSX'
-    describe 'TXA'
-    describe 'TXS'
-    describe 'TYA'
-    describe 'WAI'
+    describe "LDX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: a2
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: a6
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ae
+      end
+
+      context "with addressing mode: 'zp,y, Zero Page Indexed with Y'" do
+        # op code: b6
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: be
+      end
+    end
+
+    describe "LDY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: a0
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: a4
+      end
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: ac
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: b4
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: bc
+      end
+    end
+
+    describe "LSR" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    0,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 46
+      end
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 4a
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 4e
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 56
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 5e
+      end
+    end
+
+    describe "NOP" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: ea
+      end
+    end
+
+    describe "ORA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: 01
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 05
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: 09
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 0d
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: 11
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: 12
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 15
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: 19
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 1d
+      end
+    end
+
+    describe "PHA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 48
+      end
+    end
+
+    describe "PHP" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 08
+      end
+    end
+
+    describe "PHX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: da
+      end
+    end
+
+    describe "PHY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 5a
+      end
+    end
+
+    describe "PLA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 68
+      end
+    end
+
+    describe "PLP" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N, V,  , 1, D, I, Z, C
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 28
+      end
+    end
+
+    describe "PLX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: fa
+      end
+    end
+
+    describe "PLY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 7a
+      end
+    end
+
+    describe "RMB0" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 07
+      end
+    end
+
+    describe "RMB1" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 17
+      end
+    end
+
+    describe "RMB2" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 27
+      end
+    end
+
+    describe "RMB3" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 37
+      end
+    end
+
+    describe "RMB4" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 47
+      end
+    end
+
+    describe "RMB5" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 57
+      end
+    end
+
+    describe "RMB6" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 67
+      end
+    end
+
+    describe "RMB7" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 77
+      end
+    end
+
+    describe "ROL" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 26
+      end
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 2a
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 2e
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 36
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 3e
+      end
+    end
+
+    describe "ROR" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 66
+      end
+
+      context "with addressing mode: 'A, Accumulator'" do
+        # op code: 6a
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 6e
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 76
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 7e
+      end
+    end
+
+    describe "RTI" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N, V,  , 1, D, I, Z, C
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 40
+      end
+    end
+
+    describe "RTS" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 's, Stack'" do
+        # op code: 60
+      end
+    end
+
+    describe "SBC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N, V,  ,  ,  ,  , Z, C
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: e1
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: e5
+      end
+
+      context "with addressing mode: '#, Immediate'" do
+        # op code: e9
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: ed
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: f1
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: f2
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: f5
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: f9
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: fd
+      end
+    end
+
+    describe "SEC" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  , 1
+
+      context "with addressing mode: 'I, '" do
+        # op code: 38
+      end
+    end
+
+    describe "SED" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  , 1,  ,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: f8
+      end
+    end
+
+    describe "SEI" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  , 1,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 78
+      end
+    end
+
+    describe "SMB0" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 87
+      end
+    end
+
+    describe "SMB1" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 97
+      end
+    end
+
+    describe "SMB2" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: a7
+      end
+    end
+
+    describe "SMB3" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: b7
+      end
+    end
+
+    describe "SMB4" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: c7
+      end
+    end
+
+    describe "SMB5" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: d7
+      end
+    end
+
+    describe "SMB6" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: e7
+      end
+    end
+
+    describe "SMB7" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: f7
+      end
+    end
+
+    describe "STA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: '(zp,x), Zero Page Indexed Indirect'" do
+        # op code: 81
+      end
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 85
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 8d
+      end
+
+      context "with addressing mode: '(zp),y, Zero Page Indirect Indexed with Y'" do
+        # op code: 91
+      end
+
+      context "with addressing mode: '(zp), Zero Page Indirect'" do
+        # op code: 92
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 95
+      end
+
+      context "with addressing mode: 'a,y, Absolute Indexed with Y'" do
+        # op code: 99
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 9d
+      end
+    end
+
+    describe "STP" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'I, '" do
+        # op code: db
+      end
+    end
+
+    describe "STX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 86
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 8e
+      end
+
+      context "with addressing mode: 'zp,y, Zero Page Indexed with Y'" do
+        # op code: 96
+      end
+    end
+
+    describe "STY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 84
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 8c
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 94
+      end
+    end
+
+    describe "STZ" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 64
+      end
+
+      context "with addressing mode: 'zp,x, Zero Page Indexed with X'" do
+        # op code: 74
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 9c
+      end
+
+      context "with addressing mode: 'a,x, Absolute Indexed with X'" do
+        # op code: 9e
+      end
+    end
+
+    describe "TAX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: aa
+      end
+    end
+
+    describe "TAY" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: a8
+      end
+    end
+
+    describe "TRB" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 14
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 1c
+      end
+    end
+
+    describe "TSB" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'zp, Zero Page'" do
+        # op code: 04
+      end
+
+      context "with addressing mode: 'a, Absolute'" do
+        # op code: 0c
+      end
+    end
+
+    describe "TSX" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: ba
+      end
+    end
+
+    describe "TXA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 8a
+      end
+    end
+
+    describe "TXS" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 9a
+      end
+    end
+
+    describe "TYA" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #    N,  ,  ,  ,  ,  , Z,
+
+      context "with addressing mode: 'i, Implied'" do
+        # op code: 98
+      end
+    end
+
+    describe "WAI" do
+      # Status Register:
+      #   7N 6V 51 41 3D 2I 1Z 0C
+      #     ,  ,  ,  ,  ,  ,  ,
+
+      context "with addressing mode: 'I, '" do
+        # op code: cb
+      end
+    end
   end
 end
